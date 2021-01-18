@@ -1656,9 +1656,8 @@ def print_banner():
 \___/ /_/ /_/  \____/_/|_/\___/__,__/ 
                                       
     """+reset)
+    print("https://github.com/Frissi0n/GTFONow\n")
 
-
-print("https://github.com/Frissi0n/GTFONow")
 parser = argparse.ArgumentParser(
     description='Gtfonow: Automatic privilege escalation')
 parser.add_argument('--suid', action='store_true', default=False,
