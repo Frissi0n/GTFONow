@@ -2272,11 +2272,11 @@ def check_suid_full_disk():
                 "SGID": file_properties.get("Group") if is_sgid else None
             }
             log.warning(
-                "Found exploitable suid binary outside of user's PATH: %s", binary)
+                "Found exploitable suid binary outside of user's PATH: %s", binary_path)
             potential_privesc.append(priv_esc)
         else:
             log.info(
-                "Found suid/sgid binary, however there is no known GTFOBin exploit: %s", binary)
+                "Found suid/sgid binary, however there is no known GTFOBin exploit: %s", binary_path)
     return potential_privesc
 
 
@@ -2286,7 +2286,7 @@ def get_user_choice(prompt):
 
 
 def print_banner():
-    print(GREEN+"""
+    print(GREEN+r"""
   ___________________  _  __          
  / ___/_  __/ __/ __ \/ |/ /__ _    __
 / (_ / / / / _// /_/ /    / _ \ |/|/ /
@@ -2344,13 +2344,41 @@ def main():
     payload_options = []
     priv_escs = sudo_privescs + suid_privescs + cap_privescs
     for key, value in enumerate(priv_escs):
-        # info = value.get("Capability") or ""
-        key = GREEN + "[" + str(key) + "] " + RESET
-        print(key + value["Path"] +
-              " " + GREEN + value["Type"] + RESET)
+        info = ""
+
+        if value["Type"] == "SUID/SGID Binary":
+            owner = value.get("SUID")
+            group = value.get("SGID")
+            if owner:
+                if owner == "root":
+                    owner = RED + owner + RESET
+                else:
+                    owner = GREEN + owner + RESET
+                info = "SetUID binary as user " + owner + ". "
+            if group:
+                info = info + "SetGID binary as group " + group + "."
+        if value["Type"] == "Capability":
+            info = "Binary with capability " + value.get("Capability")
+        key = GREEN + "[" + str(key) + "] " + RESET + value["Binary"]
+        payload_options = []
+        for payload in value["Payloads"]:
+            payload_description = payload_type(payload)
+            if payload_description not in payload_options:
+                payload_options.append(payload_description)
+        payload_types = ", ".join(payload_options)
+        print(key)
+        print("  Path: " + value["Path"] + "\n  Type: " +
+              value["Type"] + "\n  Info: " + info + "\n  Payloads: " + payload_types)
     choice = get_user_choice("> ")
     priv_esc = priv_escs[choice]
-    exploit(binary=priv_esc["Binary"], payload=priv_esc["Payloads"][0],
+
+    print("\nChoose payload:")
+    for key, payload in enumerate(priv_esc["Payloads"]):
+        print(GREEN + "[" + str(key) + "] " +
+              RESET + priv_esc["Binary"] + GREEN + " " + payload_type(payload).lower() + RESET)
+
+    choice = get_user_choice("> ")
+    exploit(binary=priv_esc["Binary"], payload=priv_esc["Payloads"][choice],
             binary_path=priv_esc["Path"])
 
 
