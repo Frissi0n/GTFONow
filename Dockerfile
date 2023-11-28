@@ -3,7 +3,7 @@
 ARG LINUX_DISTRO=ubuntu:latest
 ARG PYTHON_VERSION=3.8
 
-FROM ${LINUX_DISTRO}
+FROM python:${PYTHON_VERSION}
 # Set the working directory in the container
 
 RUN apt-get update -y
