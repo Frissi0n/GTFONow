@@ -10,8 +10,10 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [2.6, 2.7, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12]
+        python-version:
+          ["2.7", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
