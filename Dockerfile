@@ -7,18 +7,30 @@ FROM python:${PYTHON_VERSION}
 # Set the working directory in the container
 
 RUN apt-get update -y
-RUN apt-get install -y zip
+RUN apt-get install -y zip cron vim nano nmap systemctl supervisor openssh-server sudo
 RUN pip install pytest
 RUN chmod u+s $(which find)
+RUN chmod u+s $(which nmap)
+RUN chmod u+s $(which cp)
+RUN chmod u+s $(which tee)
+RUN chmod u+s $(which dd)
+RUN chmod u+s $(which mv)
+RUN chmod u+s $(which rbash)
+
 RUN useradd -ms /bin/bash lowpriv
+RUN useradd -ms /bin/bash higherpriv
 
+RUN echo "lowpriv ALL=(ALL) NOPASSWD: /usr/bin/head" >> /etc/sudoers
+RUN echo "lowpriv ALL=(higherpriv) NOPASSWD: /usr/bin/vim" >> /etc/sudoers
 
-
-USER lowpriv
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN mkdir /run/sshd
+# USER lowpriv
 
 WORKDIR /home/lowpriv/
 COPY --chown=lowpriv:lowpriv . .
 
-# Run pytest when the container launches
-# CMD ["pytest", "-v"]
-CMD ["pytest", "-v"]
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+
+#CMD ["pytest", "-v"]
