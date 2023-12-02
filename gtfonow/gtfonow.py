@@ -2031,7 +2031,7 @@ def execute_privileged_command(payload, command):
 
 
 def get_sudo_l_output():
-    """Gets the output of sudo -l command in a python 2.* and 3.* compatible way.
+    """Gets the output of sudo -l command.
 
     Returns:
         str: Output of sudo -l command.
@@ -2046,13 +2046,17 @@ def get_sudo_l_output():
                 break
         else:
             process.kill()
-            log.error("Command timed out. User may need to enter a password.")
+            print("Command timed out. User may need to enter a password.")
             return
 
         stdout, _ = process.communicate()
+
+        if sys.version_info[0] >= 3:
+            stdout = stdout.decode('utf-8')
+
         return stdout
     except Exception as e:
-        log.error("Error: " + str(e))
+        print("Error: " + str(e))
         return
 
 
