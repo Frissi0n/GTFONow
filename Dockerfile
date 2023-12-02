@@ -11,7 +11,6 @@ RUN apt-get install -y zip
 RUN apt-get install -y cron
 RUN apt-get install -y nano
 RUN apt-get install -y nmap
-RUN apt-get install -y systemctl
 RUN apt-get install -y supervisor
 RUN apt-get install -y openssh-server
 RUN apt-get install -y sudo
