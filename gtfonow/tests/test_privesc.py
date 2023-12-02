@@ -12,7 +12,6 @@ def test_check_suid_bins():
     }
 
     res = check_suid_bins()
-    # Assertions
     assert expected in res
 
 

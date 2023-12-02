@@ -11,10 +11,11 @@ RUN apt-get install -y zip
 RUN apt-get install -y cron
 RUN apt-get install -y nano
 RUN apt-get install -y nmap
+RUN apt-get install -y vim
 RUN apt-get install -y supervisor
 RUN apt-get install -y openssh-server
 RUN apt-get install -y sudo
-RUN pip install pytest
+RUN pip install pytest pytest-cov
 RUN chmod u+s $(which find)
 RUN chmod u+s $(which nmap)
 RUN chmod u+s $(which cp)
