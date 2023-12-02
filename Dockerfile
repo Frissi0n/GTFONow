@@ -7,7 +7,14 @@ FROM python:${PYTHON_VERSION}
 # Set the working directory in the container
 
 RUN apt-get update -y
-RUN apt-get install -y zip cron vim nano nmap systemctl supervisor openssh-server sudo
+RUN apt-get install -y zip 
+RUN apt-get install -y cron
+RUN apt-get install -y nano
+RUN apt-get install -y nmap
+RUN apt-get install -y systemctl
+RUN apt-get install -y supervisor
+RUN apt-get install -y openssh-server
+RUN apt-get install -y sudo
 RUN pip install pytest
 RUN chmod u+s $(which find)
 RUN chmod u+s $(which nmap)

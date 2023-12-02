@@ -29,10 +29,10 @@ jobs:
 
       - name: Run tests
         run: |
-          docker run --name gtfonow_test:${{ matrix.python-version }} -d gtfonow_test:${{ matrix.python-version }}
+          docker run --name gtfonow_test_${{ matrix.python-version }} -d gtfonow_test:${{ matrix.python-version }}
 
       - name: Run Pytest
-        run: docker exec -it gtfonow_test:${{ matrix.python-version }} pytest -v
+        run: docker exec -it gtfonow_test_${{ matrix.python-version }} pytest -v
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
