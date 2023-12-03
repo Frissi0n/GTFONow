@@ -3,6 +3,8 @@ import pytest
 from gtfonow.gtfonow import *
 from unittest.mock import patch, MagicMock
 
+log.set_level(logging.DEBUG)
+
 
 def test_check_suid_bins():
     expected = {
