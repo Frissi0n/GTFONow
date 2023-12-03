@@ -2,11 +2,11 @@ name: Docker PyTest
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main]
     paths:
       - "gtfonow/**"
   pull_request:
-    branches: [main, dev]
+    branches: [main]
     paths:
       - "gtfonow/**"
 jobs:

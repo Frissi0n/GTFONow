@@ -12,8 +12,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: "recursive"
-          ref: dev
-
       - name: Update submodules
         run: |
           git submodule update --remote --recursive
@@ -38,4 +36,4 @@ jobs:
           branch: update-gtfobins-${{ github.run_id }}
           body: "This is an automated PR to update the GTFOBin submodule."
           delete-branch: true
-          commit-message: Update GTFOBins
+          commit-message: "feat: Update GTFOBins"
