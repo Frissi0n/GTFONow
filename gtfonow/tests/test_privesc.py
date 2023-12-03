@@ -1,5 +1,6 @@
 import sys
 import pytest
+import os
 from gtfonow.gtfonow import *
 from unittest.mock import patch, MagicMock
 
@@ -7,6 +8,8 @@ log.set_level(logging.DEBUG)
 
 
 def test_check_suid_bins():
+    log.debug(os.getenv('PATH'))
+
     expected = {
         "Binary": "find",
         "Path": "/usr/bin/find",
@@ -25,6 +28,8 @@ def test_check_suid_bins():
 
 
 def test_check_sudo_nopasswd_binaries():
+    log.debug(os.getenv('PATH'))
+
     sudo_l_output = get_sudo_l_output()
     print(sudo_l_output)
     res = check_sudo_nopasswd_binaries(sudo_l_output)
@@ -61,6 +66,8 @@ test_cases = [
 
 @pytest.mark.parametrize("binary, payload, exploit_type, risk, auto, binary_path, command", test_cases)
 def test_exploit(capsys,  binary, payload, exploit_type, risk, auto, binary_path, command):
+    log.debug(os.getenv('PATH'))
+
     sys.exit = MagicMock()
     sys.exit.return_value = 0
     exploit(binary, payload, exploit_type, risk, auto,
