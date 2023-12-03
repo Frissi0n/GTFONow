@@ -2,7 +2,7 @@ name: Update Submodules and Create PR
 
 on:
   schedule:
-    - cron: "8 * * * *"
+    - cron: "8 0 * * 5"
 jobs:
   update-submodules:
     runs-on: ubuntu-latest
