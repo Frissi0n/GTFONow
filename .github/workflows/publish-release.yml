@@ -34,7 +34,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: gtfobins/gtfonow.py
+          file: gtfonow/gtfonow.py
           asset_name: gtfonow.py
           tag: ${{  steps.changelog.outputs.tag }}
-          overwrite: true
