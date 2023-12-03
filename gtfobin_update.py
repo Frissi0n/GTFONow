@@ -60,11 +60,11 @@ def main():
                     capabilities[binary] = payloads
 
     replace_content(GTFO_NOW_PATH, "sudo_bins=" + json.dumps(sudo_bins,
-                    indent=4), "# SUDO_BINS_START", "# SUDO_BINS_END")
+                    indent=4, sort_keys=True), "# SUDO_BINS_START", "# SUDO_BINS_END")
     replace_content(GTFO_NOW_PATH, "suid_bins=" + json.dumps(suid_bins,
-                    indent=4), "# SUID_BINS_START", "# SUID_BINS_END")
+                    indent=4, sort_keys=True), "# SUID_BINS_START", "# SUID_BINS_END")
     replace_content(GTFO_NOW_PATH, "capabilities=" + json.dumps(capabilities,
-                    indent=4), "# CAPABILITIES_START", "# CAPABILITIES_END")
+                    indent=4, sort_keys=True), "# CAPABILITIES_START", "# CAPABILITIES_END")
 
 
 if __name__ == "__main__":
