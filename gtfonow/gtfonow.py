@@ -3904,7 +3904,9 @@ def get_binary_path(binary_name):
     for path in os.environ["PATH"].split(os.pathsep):
         full_path = os.path.join(path, binary_name)
         if os.path.isfile(full_path) and os.access(full_path, os.X_OK):
+            log.debug("Found %s at %s", binary_name, full_path)
             return full_path
+    log.debug("Could not find %s in PATH", binary_name)
     return None
 
 
