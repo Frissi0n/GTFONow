@@ -36,7 +36,7 @@ def process_yaml(filename, key):
         doc = yaml.load(content, Loader=yaml.Loader)
         if key in doc["functions"]:
             binary = os.path.basename(filename).replace(".md", "")
-            return binary, [payload["code"] for payload in doc["functions"][key]]
+            return binary, doc["functions"][key]
     return None, None
 
 
