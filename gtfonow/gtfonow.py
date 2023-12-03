@@ -3440,7 +3440,7 @@ def exploit(binary,  payload, exploit_type, risk, auto, binary_path=None, user="
 def execute_privileged_command(payload, command):
     log.debug("Executing %s", payload)
     process = subprocess.Popen(
-        payload, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
+        payload, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     process.stdin.write(command + '\n')
     out, err = process.communicate()
     if out:
