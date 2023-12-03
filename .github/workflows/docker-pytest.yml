@@ -3,9 +3,12 @@ name: Docker PyTest
 on:
   push:
     branches: [main, dev]
+    paths:
+      - "gtfonow/**"
   pull_request:
     branches: [main, dev]
-
+    paths:
+      - "gtfonow/**"
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
