@@ -3364,15 +3364,16 @@ def arbitrary_file_write(binary, payload, risk, user="root", command=None):
         elif chosen_option == "ld_preload":
             ld_preload_exploit(binary, payload, command)
         elif chosen_option == "arbitrary":
-            manual_arbitrary_file_write(binary, payload, risk, user, command)
+            manual_arbitrary_file_write(payload)
     else:
-        manual_arbitrary_file_write(binary, payload, risk, user, command)
+        manual_arbitrary_file_write(payload)
 
 
-def manual_arbitrary_file_write(binary, payload, risk, user="root", command=None):
+def manual_arbitrary_file_write(payload):
     print("Create a file named " + GREEN + "input_file" +
           RESET + " containing the file content")
     log.info("Spawning temporary shell to create file, type 'exit' when done")
+    os.system("/bin/bash")
     print("Enter the file path that you wish to write to. (eg: /root/.ssh/authorized_keys)")
     file_to_write = input("> ")
     payload = payload.replace("file_to_write", file_to_write)
