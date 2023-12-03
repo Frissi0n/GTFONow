@@ -3441,7 +3441,8 @@ def execute_privileged_command(payload, command):
     log.debug("Executing %s", payload)
     process = subprocess.Popen(
         payload, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    process.stdin.write(command + '\n')
+    bytes_command = (command + "\n").encode('utf-8')
+    process.stdin.write(bytes_command)
     out, err = process.communicate()
     if out:
         print(out)
