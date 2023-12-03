@@ -36,7 +36,7 @@ def process_yaml(filename, key):
         doc = yaml.load(content, Loader=yaml.Loader)
         if key in doc["functions"]:
             binary = os.path.basename(filename).replace(".md", "")
-            return binary, [payload["code"] for payload in doc["functions"][key]]
+            return binary, doc["functions"][key]
     return None, None
 
 
@@ -59,11 +59,11 @@ def main():
                 elif key == "capabilities":
                     capabilities[binary] = payloads
 
-    replace_content(GTFO_NOW_PATH, "sudo_bins=" + json.dumps(sudo_bins,
+    replace_content(GTFO_NOW_PATH, "sudo_bins = " + json.dumps(sudo_bins,
                     indent=4, sort_keys=True), "# SUDO_BINS_START", "# SUDO_BINS_END")
-    replace_content(GTFO_NOW_PATH, "suid_bins=" + json.dumps(suid_bins,
+    replace_content(GTFO_NOW_PATH, "suid_bins = " + json.dumps(suid_bins,
                     indent=4, sort_keys=True), "# SUID_BINS_START", "# SUID_BINS_END")
-    replace_content(GTFO_NOW_PATH, "capabilities=" + json.dumps(capabilities,
+    replace_content(GTFO_NOW_PATH, "capabilities = " + json.dumps(capabilities,
                     indent=4, sort_keys=True), "# CAPABILITIES_START", "# CAPABILITIES_END")
 
 

