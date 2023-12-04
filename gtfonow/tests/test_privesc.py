@@ -1,9 +1,9 @@
+from __future__ import print_function
 import sys
 import pytest
 import os
 from gtfonow.gtfonow import *
 from unittest.mock import patch
-from __future__ import print_function
 
 log.set_level(logging.DEBUG)
 
