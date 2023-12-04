@@ -2,9 +2,15 @@ import sys
 import pytest
 import os
 from gtfonow.gtfonow import *
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+from __future__ import print_function
 
 log.set_level(logging.DEBUG)
+
+if sys.version_info >= (3, 3):
+    from unittest.mock import MagicMock
+else:
+    from mock import MagicMock
 
 
 def test_check_suid_bins():
@@ -23,7 +29,6 @@ def test_check_suid_bins():
     }
 
     res = check_suid_bins()
-    print(res)
     assert expected in res
 
 
@@ -31,7 +36,6 @@ def test_check_sudo_nopasswd_binaries():
     log.debug(os.getenv('PATH'))
 
     sudo_l_output = get_sudo_l_output()
-    print(sudo_l_output)
     res = check_sudo_nopasswd_binaries(sudo_l_output)
     expected = {
         "SudoUser": "root",
@@ -43,7 +47,6 @@ def test_check_sudo_nopasswd_binaries():
         "Payload Type": "Arbitrary read"
 
     }
-    print(res)
     assert expected in res
 
 
@@ -73,6 +76,4 @@ def test_exploit(capsys,  binary, payload, exploit_type, risk, auto, binary_path
     exploit(binary, payload, exploit_type, risk, auto,
             binary_path=binary_path, command=command)
     captured = capsys.readouterr()
-    print(captured.out)
-    print(captured.err)
     assert "ONLY_ROOT_CAN_READ_THIS" in captured.out
