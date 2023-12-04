@@ -23,7 +23,7 @@ RUN chmod u+s $(which tee)
 RUN chmod u+s $(which dd)
 RUN chmod u+s $(which mv)
 RUN chmod u+s $(which rbash)
-
+RUN pip install mock
 RUN useradd -ms /bin/bash lowpriv
 RUN useradd -ms /bin/bash higherpriv
 RUN ssh-keygen -N '' -f /root/.ssh/id_rsa

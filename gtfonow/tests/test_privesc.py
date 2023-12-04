@@ -3,14 +3,12 @@ import sys
 import pytest
 import os
 from gtfonow.gtfonow import *
-from unittest.mock import patch
-
 log.set_level(logging.DEBUG)
 
 if sys.version_info >= (3, 3):
-    from unittest.mock import MagicMock
+    from unittest.mock import MagicMock, patch
 else:
-    from mock import MagicMock
+    from mock import MagicMock, patch
 
 
 def test_check_suid_bins():
