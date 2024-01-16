@@ -3669,7 +3669,7 @@ def check_capability(binary_path, capability):
     try:
         result, error = execute_command(["getcap", binary_path])
 
-        if capability in result:
+        if capability in result.decode('utf-8'):
             return True
         return False
 
