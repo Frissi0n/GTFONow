@@ -1,3 +1,12 @@
+## [0.2.1](https://github.com/Frissi0n/GTFONow/compare/v0.2.0...v0.2.1) (2024-01-21)
+
+
+### Bug Fixes
+
+* TypeError: a bytes-like object is required ([5c48995](https://github.com/Frissi0n/GTFONow/commit/5c48995010ba14a265d03f65a35bd2ccd77a4b88))
+
+
+
 # [0.2.0](https://github.com/Frissi0n/GTFONow/compare/v0.1.0...v0.2.0) (2024-01-03)
 
 
