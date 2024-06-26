@@ -1,3 +1,12 @@
+# [0.3.0](https://github.com/Frissi0n/GTFONow/compare/v0.2.1...v0.3.0) (2024-06-26)
+
+
+### Features
+
+* Update GTFOBins ([#33](https://github.com/Frissi0n/GTFONow/issues/33)) ([93a21c3](https://github.com/Frissi0n/GTFONow/commit/93a21c37c492cc836e59c9979cfd99321701fe25))
+
+
+
 ## [0.2.1](https://github.com/Frissi0n/GTFONow/compare/v0.2.0...v0.2.1) (2024-01-21)
 
 
